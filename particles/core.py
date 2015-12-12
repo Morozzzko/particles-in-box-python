@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import struct
+from math import sqrt
 
 
 class Particle:
@@ -32,3 +33,15 @@ class Particle:
         return (self.pos_x == other.pos_x and self.pos_y == other.pos_y and
                 self.velocity_y == other.velocity_y and self.velocity_x == other.velocity_x and
                 self.id == other.id)
+
+    def overlaps(self, other, particle_r):
+        """
+        Check whether the particle overlaps another particle, assuming equal radius.
+
+        :param other: particle to check
+        :type other: Particle
+        :param particle_r: particle radius (meters)
+        :type particle_r: float
+        :return:
+        """
+        return sqrt((self.pos_x - other.pos_x) ** 2 + (self.pos_y - other.pos_y) ** 2) < (particle_r ** 2)

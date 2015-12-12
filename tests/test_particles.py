@@ -27,3 +27,30 @@ class TestParticleBehavior(unittest.TestCase):
                               velocity_y=self.particle.velocity_y)
         self.assertIsNot(self.particle, particle_b)
         self.assertEqual(self.particle, particle_b)
+
+    def test_particles_overlap_symmetrical(self):
+        particle_b = Particle(id=self.particle.id,
+                              pos_x=self.particle.pos_x + 0.2,
+                              pos_y=self.particle.pos_y - 0.2,
+                              velocity_x=self.particle.velocity_x,
+                              velocity_y=self.particle.velocity_y)
+        self.assertTrue(self.particle.overlaps(particle_b, 1.0))
+        self.assertTrue(particle_b.overlaps(self.particle, 1.0))
+
+    def test_particle_overlap_on_touch(self):
+        particle_b = Particle(id=self.particle.id,
+                              pos_x=self.particle.pos_x + 1.0,
+                              pos_y=self.particle.pos_y,
+                              velocity_x=self.particle.velocity_x,
+                              velocity_y=self.particle.velocity_y)
+        self.assertFalse(self.particle.overlaps(particle_b, 1.0))
+        self.assertFalse(particle_b.overlaps(self.particle, 1.0))
+
+    def test_particle_not_overlapping(self):
+        particle_b = Particle(id=self.particle.id,
+                              pos_x=self.particle.pos_x + 1.0,
+                              pos_y=self.particle.pos_y + 1.0,
+                              velocity_x=self.particle.velocity_x,
+                              velocity_y=self.particle.velocity_y)
+        self.assertFalse(self.particle.overlaps(particle_b, 1.0))
+        self.assertFalse(particle_b.overlaps(self.particle, 1.0))
