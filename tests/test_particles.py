@@ -2,6 +2,7 @@
 
 import unittest
 from particles.core import Particle
+from math import sqrt
 
 
 class TestParticleBehavior(unittest.TestCase):
@@ -54,3 +55,7 @@ class TestParticleBehavior(unittest.TestCase):
                               velocity_y=self.particle.velocity_y)
         self.assertFalse(self.particle.overlaps(particle_b, 1.0))
         self.assertFalse(particle_b.overlaps(self.particle, 1.0))
+
+    def test_particle_speed(self):
+        self.assertAlmostEquals(self.particle.speed(),
+                                sqrt(self.particle.velocity_x ** 2 + self.particle.velocity_y ** 2))

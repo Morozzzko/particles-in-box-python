@@ -34,6 +34,14 @@ class Particle:
                 self.velocity_y == other.velocity_y and self.velocity_x == other.velocity_x and
                 self.id == other.id)
 
+    def speed(self):
+        """Calculate the speed of the particle.
+
+        :return:
+        :rtype: float
+        """
+        return sqrt(self.velocity_x ** 2 + self.velocity_y ** 2)
+
     def overlaps(self, other, particle_r):
         """
         Check whether the particle overlaps another particle, assuming equal radius.
@@ -43,5 +51,6 @@ class Particle:
         :param particle_r: particle radius (meters)
         :type particle_r: float
         :return:
+        :rtype: bool
         """
         return sqrt((self.pos_x - other.pos_x) ** 2 + (self.pos_y - other.pos_y) ** 2) < (particle_r ** 2)
