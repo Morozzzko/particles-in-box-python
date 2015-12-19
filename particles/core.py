@@ -42,6 +42,26 @@ class Particle:
         """
         return sqrt(self.velocity_x ** 2 + self.velocity_y ** 2)
 
+    def is_approaching(self, other_particle):
+        """Return true if particles are approaching each other by at least one axis, false otherwise.
+
+        :param other_particle:
+        :type other_particle: Particle
+        :return:
+        :rtype: bool
+        """
+        if self.pos_x < other_particle.pos_x:
+            d_v_x = self.velocity_x - other_particle.velocity_x
+        else:
+            d_v_x = other_particle.velocity_x - self.velocity_x
+
+        if self.pos_y < other_particle.pos_y:
+            d_v_y = self.velocity_y - other_particle.velocity_y
+        else:
+            d_v_y = other_particle.velocity_y - self.velocity_y
+
+        return d_v_x > 0 or d_v_y > 0
+
     def distance_to(self, other_particle):
         """Calculate the distance between the current and the specified particle centers.
 
