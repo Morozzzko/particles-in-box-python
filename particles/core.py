@@ -66,7 +66,7 @@ class Particle:
         """Calculate the distance between the current and the specified particle centers.
 
         :param other_particle: Particle you want to calculate the distance to
-        :rtype other_particle: Particle
+        :type other_particle: Particle
         :return:
         :rtype: float
         """
