@@ -70,6 +70,23 @@ class Simulator:
         else:
             self.particles = self.distribute_particles(n_left=n_left, n_right=n_right, v_init=v_init)
 
+    def calculate_time_step(self):
+        """Calculate the time step for simulation.
+
+        During its operation, the simulator iterates over short periods of time in order to ensure that no collisions
+        are missed, or any particles fly out of the box.
+        The time step is calculated so that the fastest particle will not travel over an eighth of its radius.
+
+        If the system has become static (i.e. max speed is 0) the returned time is 1 second.
+
+        :return:
+        :rtype: float
+        """
+        fastest_particle = max(self.particles, key=lambda x: x.speed())
+        max_velocity = fastest_particle.speed()
+        max_distance = self.particle_r / 8
+        return max_distance / max_velocity if max_velocity else 1.0
+
     def distribute_particles(self, n_left: int = 500, n_right: int = 500, v_init: float = 0.0):
         """
         Generate a distribution of particles within the box.
