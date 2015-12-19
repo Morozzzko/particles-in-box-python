@@ -12,6 +12,15 @@ class TestParticleBehavior(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def copy_particle(self, offset_x=0.0, offset_y=0.0, v_ratio_x=1.0, v_ratio_y=1.0):
+        return Particle(
+            id=self.particle.id + 3,  # invert the lesser bit, also increase the index
+            pos_x=self.particle.pos_x + offset_x,
+            pos_y=self.particle.pos_y + offset_y,
+            velocity_x=self.particle.velocity_x * v_ratio_x,
+            velocity_y=self.particle.velocity_y * v_ratio_y,
+        )
+
     def test_particle_converts_to_bytes(self):
         self.assertIsInstance(bytes(self.particle), bytes)
 
