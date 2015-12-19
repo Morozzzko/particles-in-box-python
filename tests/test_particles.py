@@ -29,7 +29,7 @@ class TestParticleBehavior(unittest.TestCase):
         self.assertIsNot(self.particle, particle_b)
         self.assertEqual(self.particle, particle_b)
 
-    def test_particles_overlap_symmetrical(self):
+    def test_particles_overlap_symmetric(self):
         particle_b = Particle(id=self.particle.id,
                               pos_x=self.particle.pos_x + 0.2,
                               pos_y=self.particle.pos_y - 0.2,
@@ -59,3 +59,28 @@ class TestParticleBehavior(unittest.TestCase):
     def test_particle_speed(self):
         self.assertAlmostEquals(self.particle.speed(),
                                 sqrt(self.particle.velocity_x ** 2 + self.particle.velocity_y ** 2))
+
+    def test_particle_distance_to_self_is_zero(self):
+        self.assertAlmostEquals(self.particle.distance_to(self.particle), 0.0)
+
+    def test_particle_distance_symmetric(self):
+        offset_x = 1.0
+        offset_y = 1.0
+        particle_b = Particle(id=self.particle.id,
+                              pos_x=self.particle.pos_x + offset_x,
+                              pos_y=self.particle.pos_y + offset_y,
+                              velocity_x=self.particle.velocity_x,
+                              velocity_y=self.particle.velocity_y)
+        self.assertAlmostEquals(self.particle.distance_to(particle_b),
+                                particle_b.distance_to(self.particle))
+
+    def test_particle_distance_to_another(self):
+        offset_x = 1.0
+        offset_y = 1.0
+        ideal_distance = sqrt(offset_x ** 2 + offset_y ** 2)
+        particle_b = Particle(id=self.particle.id,
+                              pos_x=self.particle.pos_x + offset_x,
+                              pos_y=self.particle.pos_y + offset_y,
+                              velocity_x=self.particle.velocity_x,
+                              velocity_y=self.particle.velocity_y)
+        self.assertAlmostEquals(self.particle.distance_to(particle_b), ideal_distance)

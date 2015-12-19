@@ -42,6 +42,16 @@ class Particle:
         """
         return sqrt(self.velocity_x ** 2 + self.velocity_y ** 2)
 
+    def distance_to(self, other_particle):
+        """Calculate the distance between the current and the specified particle centers.
+
+        :param other_particle: Particle you want to calculate the distance to
+        :rtype other_particle: Particle
+        :return:
+        :rtype: float
+        """
+        return sqrt((self.pos_x - other_particle.pos_x) ** 2 + (self.pos_y - other_particle.pos_y) ** 2)
+
     def overlaps(self, other, particle_r):
         """
         Check whether the particle overlaps another particle, assuming equal radius.
@@ -53,4 +63,4 @@ class Particle:
         :return:
         :rtype: bool
         """
-        return sqrt((self.pos_x - other.pos_x) ** 2 + (self.pos_y - other.pos_y) ** 2) < (particle_r ** 2)
+        return self.distance_to(other) < (particle_r ** 2)
