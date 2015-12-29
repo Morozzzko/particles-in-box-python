@@ -50,3 +50,9 @@ class TestNewSimulation(unittest.TestCase):
             particles_except_current.remove(particle_a)
             for particle_b in particles_except_current:
                 self.assertFalse(particle_a.overlaps(particle_b, self.simulator.particle_r))
+
+    def test_time_step(self):
+        time_step = self.simulator.calculate_time_step()
+        particle_r = self.simulator.particle_r
+        for particle in self.simulator.particles:
+            self.assertLessEqual(particle.speed() * time_step, particle_r)
