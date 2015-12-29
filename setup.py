@@ -12,7 +12,7 @@ setup(
     version="0.1",
     packages=['particles'],
     scripts=['particles.py'],
-    requires=['kivy'],
+    requires=[],
     license="MIT",
     description="A simple tool to visualize granular gas behavior in a box",
     long_description=long_description,
