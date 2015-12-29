@@ -82,6 +82,7 @@ class Simulator:
         :return:
         """
         time_step = self.calculate_time_step()
+        gravity_pull = self.g * (time_step ** 2) / 2
 
         # Create links to speed the code up
         particles = self.particles
@@ -109,7 +110,8 @@ class Simulator:
         # Move all the particles
         for particle in self.particles:
             particle.pos_x += particle.velocity_x * time_step
-            particle.pos_y += particle.velocity_y * time_step
+            particle.pos_y += particle.velocity_y * time_step - gravity_pull
+            particle.velocity_y -= self.g * time_step
 
         particles.sort(key=lambda x: x.pos_y)
 
