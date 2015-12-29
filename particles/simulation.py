@@ -70,6 +70,113 @@ class Simulator:
         else:
             self.particles = self.distribute_particles(n_left=n_left, n_right=n_right, v_init=v_init)
 
+    def next_state(self):
+        """
+        Perform simulation of the particle movement.
+
+        Calculate the time step to perform the simulation, then perform particle movement.
+        Check whether any two particles collide, and if so, move them and decrease their speed by v_loss.
+        Then, check if any particle collides with walls. If so, move them and rotate their velocity vector
+
+
+        :return:
+        """
+        time_step = self.calculate_time_step()
+
+        # Create links to speed the code up
+        particles = self.particles
+        particle_r = self.particle_r
+        particle_r_2 = particle_r * 2
+        particle_r_squared = particle_r ** 2
+
+        speed_factor = 1 - self.v_loss
+
+        x_min = particle_r
+        x_max = self.box_width - particle_r
+        y_min = x_min
+        y_max = self.box_height - particle_r
+        barrier_x = self.barrier_x
+        barrier_x_left = barrier_x - self.barrier_width / 2 - particle_r
+        barrier_x_right = barrier_x + self.barrier_width / 2 + particle_r
+        barrier_x_real_left = barrier_x_left + particle_r
+        barrier_x_real_right = barrier_x_right - particle_r
+        barrier_y_min = self.hole_y - self.hole_height / 2 + particle_r
+        barrier_y_max = self.hole_y + self.hole_height / 2 - particle_r
+        delta_v_top = self.delta_v_top
+        delta_v_bottom = self.delta_v_bottom
+        delta_v_side = self.delta_v_side
+
+        # Move all the particles
+        for particle in self.particles:
+            particle.pos_x += particle.velocity_x * time_step
+            particle.pos_y += particle.velocity_y * time_step
+
+        particles.sort(key=lambda x: x.pos_y)
+
+        # Check collisions between particles
+        for (i, particle) in enumerate(particles):
+            particle_overlaps = particle.overlaps
+            particle_is_approaching = particle.is_approaching
+            particle_distance_to = particle.distance_to
+            for idx in range(i, len(particles)):
+                other_particle = particles[idx]
+                dy = particle.pos_y - other_particle.pos_y
+                if dy < particle_r_squared:
+                    continue
+                if particle_overlaps(other_particle, particle_r) and particle_is_approaching(other_particle):
+                    particle.velocity_x *= speed_factor
+                    particle.velocity_y *= speed_factor
+                    other_particle.velocity_x *= speed_factor
+                    other_particle.velocity_y *= speed_factor
+
+                    dx = particle.pos_x - other_particle.pos_x
+                    distance_between_particles = particle_distance_to(other_particle)
+                    distance_to_move = particle_r_2 - distance_between_particles
+                    if dy > 0:
+                        particle.pos_x += distance_to_move * (dx / distance_between_particles)
+                        particle.pos_y += distance_to_move * (dy / distance_between_particles)
+                    else:
+                        other_particle.pos_x -= distance_to_move * (dx / distance_between_particles)
+                        other_particle.pos_y -= distance_to_move * (dy / distance_between_particles)
+
+        # Check collision with walls
+
+        for particle in particles:
+            pos_x = particle.pos_x
+            pos_y = particle.pos_y
+            velocity_x = particle.velocity_x
+            velocity_y = particle.velocity_y
+            if pos_y > y_max and velocity_y > 0:  # box ceiling
+                particle.pos_y = y_max
+                particle.velocity_y = -velocity_y - delta_v_top
+            elif pos_y < y_min and velocity_y < 0:  # box floor
+                particle.pos_y = y_min
+                particle.velocity_y = -velocity_y + delta_v_bottom
+
+            if pos_x > x_max and velocity_x > 0:  # box right side
+                particle.pos_x = x_max
+                particle.velocity_x = -velocity_x - delta_v_side
+            elif pos_x < x_min and velocity_x < 0:  # box left side
+                particle.pos_x = x_min
+                particle.velocity_x = -velocity_x + delta_v_side
+            elif barrier_x_left < pos_x < barrier_x_right:  # barrier collisions
+                velocity_y = particle.velocity_y  # in case particle has collided with the top
+                pos_y = particle.pos_y
+                if barrier_x_real_left < pos_x < barrier_x_real_right:  # if the particle is within the hole
+                    if pos_y > barrier_y_max and velocity_y > 0:
+                        particle.pos_y = barrier_y_max
+                        particle.velocity_y = -velocity_y - delta_v_top
+                    elif pos_y < barrier_y_min and velocity_y < 0:
+                        particle.pos_y = barrier_y_min
+                        particle.velocity_y = -velocity_y + delta_v_bottom
+                elif pos_y < barrier_y_min or pos_y > barrier_y_max:
+                    if pos_x < barrier_x:
+                        particle.pos_x = barrier_x_left
+                        particle.velocity_x = -particle.velocity_x - delta_v_side
+                    else:
+                        particle.pos_x = barrier_x_right
+                        particle.velocity_x = -particle.velocity_x + delta_v_side
+
     def calculate_time_step(self):
         """Calculate the time step for simulation.
 
