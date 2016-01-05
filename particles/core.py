@@ -5,6 +5,8 @@ from math import sqrt
 
 
 class Particle:
+    str_decode = "ddddb"
+
     __slots__ = ['pos_x', 'pos_y', 'velocity_x', 'velocity_y', 'id']
 
     def __init__(self, id, pos_x=0.0, pos_y=0.0, velocity_x=0.0, velocity_y=0.0):
@@ -25,7 +27,7 @@ class Particle:
                                                                         id=self.id)
 
     def __bytes__(self):
-        return struct.pack("ddddb", self.pos_x, self.pos_y, self.velocity_x, self.velocity_y, self.id)
+        return struct.pack(self.str_decode, self.pos_x, self.pos_y, self.velocity_x, self.velocity_y, self.id)
 
     def __eq__(self, other):
         if not isinstance(other, Particle):
