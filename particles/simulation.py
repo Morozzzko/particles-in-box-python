@@ -306,7 +306,6 @@ class BinarySimulator(Simulator):
 
     def __init__(self, file_name):
         self.file_name = file_name
-        self.pointer = 0
         with open(file_name, mode='br') as file:
             (box_width, box_height, delta_v_top,
              delta_v_bottom, delta_v_side, barrier_x,
@@ -315,13 +314,14 @@ class BinarySimulator(Simulator):
                                                                      file.read(struct.calcsize(self.str_decode)))
             particles = []
             for i in range(n_left + n_right):
-                data = file.read(struct.calcsize(Particle.str_decode))
-                particles.append(Particle(bytes(data)))
-            Simulator.__init__(self, box_width=box_width, box_height=box_height, delta_v_top=delta_v_top,
-                               delta_v_bottom=delta_v_bottom, delta_v_side=delta_v_side, barrier_x=barrier_x,
-                               barrier_width=barrier_width, hole_y=hole_y, hole_height=hole_height, v_loss=v_loss,
-                               particle_r=particle_r, n_left=n_left, n_right=n_right, v_init=v_init, g=g,
-                               particles=particles)
+                data = file.read(Particle.size)
+                particles.append(Particle(data))
+            super(BinarySimulator, self).__init__(box_width=box_width, box_height=box_height, delta_v_top=delta_v_top,
+                                                  delta_v_bottom=delta_v_bottom, delta_v_side=delta_v_side, barrier_x=barrier_x,
+                                                  barrier_width=barrier_width, hole_y=hole_y, hole_height=hole_height, v_loss=v_loss,
+                                                  particle_r=particle_r, n_left=n_left, n_right=n_right, v_init=v_init, g=g,
+                                                  particles=particles)
+
             self.pointer = file.tell()
 
     def next_state(self):
@@ -331,6 +331,6 @@ class BinarySimulator(Simulator):
         """
         with open(self.file_name, mode='rb') as file:
             file.seek(self.pointer)
-            self.particles = [Particle(bytes(file.read(struct.calcsize(Particle.str_decode))))
+            self.particles = [Particle(file.read(Particle.size))
                               for particle in self.particles]
             self.pointer = file.tell()

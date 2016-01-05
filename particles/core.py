@@ -6,6 +6,7 @@ from math import sqrt
 
 class Particle:
     str_decode = "ddddb"
+    size = struct.calcsize(str_decode)
 
     __slots__ = ['pos_x', 'pos_y', 'velocity_x', 'velocity_y', 'id']
 
