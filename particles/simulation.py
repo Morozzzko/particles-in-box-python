@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from particles.core import Particle
-import random
-from math import sin, cos
+import random, struct
+import copy
+from math import sin, cos, floor
 
 
 class Simulator:
@@ -69,6 +70,25 @@ class Simulator:
             self.particles = particles
         else:
             self.particles = self.distribute_particles(n_left=n_left, n_right=n_right, v_init=v_init)
+
+    def simulate(self, num_of_seconds, num_of_snapshots):
+        """
+        Simulate movement of the particle with specify number of seconds
+        :param num_of_seconds: number of seconds for the simulation
+        :type num_of_seconds: float
+        :param num_of_snapshots: number of snapshots makes in one second
+        :type num_of_snapshots: float
+        :return:
+        """
+        curr_t = 0
+        snap_seconds = [1 / num_of_snapshots * t for t in range(floor(num_of_seconds * num_of_snapshots) + 1)]
+        snap_seconds.pop(0)
+        yield copy.copy(self.particles)
+        while curr_t < num_of_seconds and snap_seconds:
+            if curr_t < snap_seconds[0] < curr_t + self.calculate_time_step():
+                snap_seconds.pop(0)
+                yield copy.copy(self.particles)
+            curr_t += self.calculate_time_step()
 
     def next_state(self):
         """
@@ -276,3 +296,41 @@ class Simulator:
             particles_right.append(particle)
         particles.extend(particles_right)
         return particles
+
+
+class BinarySimulator(Simulator):
+    """
+    Simulator which creates from the binary file.
+    """
+    str_decode = "dddddddddddiidd"
+
+    def __init__(self, file_name):
+        self.file_name = file_name
+        with open(file_name, mode='br') as file:
+            (box_width, box_height, delta_v_top,
+             delta_v_bottom, delta_v_side, barrier_x,
+             barrier_width, hole_y, hole_height, v_loss,
+             particle_r, n_left, n_right, v_init, g) = struct.unpack(self.str_decode,
+                                                                     file.read(struct.calcsize(self.str_decode)))
+            particles = []
+            for i in range(n_left + n_right):
+                data = file.read(Particle.size)
+                particles.append(Particle(data))
+            super(BinarySimulator, self).__init__(box_width=box_width, box_height=box_height, delta_v_top=delta_v_top,
+                                                  delta_v_bottom=delta_v_bottom, delta_v_side=delta_v_side, barrier_x=barrier_x,
+                                                  barrier_width=barrier_width, hole_y=hole_y, hole_height=hole_height, v_loss=v_loss,
+                                                  particle_r=particle_r, n_left=n_left, n_right=n_right, v_init=v_init, g=g,
+                                                  particles=particles)
+
+            self.pointer = file.tell()
+
+    def next_state(self):
+        """
+        Read data from the file for the next simulation
+        :return:
+        """
+        with open(self.file_name, mode='rb') as file:
+            file.seek(self.pointer)
+            self.particles = [Particle(file.read(Particle.size))
+                              for particle in self.particles]
+            self.pointer = file.tell()
