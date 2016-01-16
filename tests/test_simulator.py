@@ -4,6 +4,8 @@ from particles.core import Particle
 from particles.simulation import Simulator, BinarySimulator
 import unittest
 from struct import *
+from math import floor
+import tempfile
 
 
 class TestNewSimulation(unittest.TestCase):
@@ -59,25 +61,28 @@ class TestNewSimulation(unittest.TestCase):
             self.assertLessEqual(particle.speed() * time_step, particle_r)
 
     def test_simulate(self):
-        simulation = self.simulator.simulate(3.1, 4)
+        num_of_sec = 2
+        num_of_snap = 4
+        simulation = self.simulator.simulate(num_of_sec, num_of_snap)
         num_of_states = sum([1 for state in simulation])
-        self.assertEqual(num_of_states, 13)
+        self.assertEqual(num_of_states, floor(num_of_sec * num_of_snap) + 1)
 
     def test_bin_simulator(self):
-        path_to_file = '/Users/Misha/PycharmProjects/particles-in-box/tests/fooo.txt'
-        file = open(path_to_file, mode='bw+')
+        directory = tempfile.TemporaryDirectory()
+        filename = ''.join([directory.name, '/fooo.txt'])
+        file = open(filename, 'bw+')
         parameters = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 1, 1, 12, 13]
         particle_arrays = [[1.11, 2.22, 3.33, 4.44, 1],
-                       [5.55, 6.66, 7.77, 8.88, 2],
-                       [9.99, 10.10, 11.11, 12.12, 1],
-                       [13.13, 14.14, 15.15, 16.16, 2],
-                       [1.11, 2.22, 3.33, 4.44, 1],
-                       [3, 6.66, 7.77, 8.88, 2]]
+                           [5.55, 6.66, 7.77, 8.88, 2],
+                           [9.99, 10.10, 11.11, 12.12, 1],
+                           [13.13, 14.14, 15.15, 16.16, 2],
+                           [1.11, 2.22, 3.33, 4.44, 1],
+                           [3, 6.66, 7.77, 8.88, 2]]
         file.write(pack(BinarySimulator.str_decode, *parameters))
         for particle in particle_arrays:
             file.write(pack(Particle.str_decode, *particle))
         file.close()
-        simulator = BinarySimulator(path_to_file)
+        simulator = BinarySimulator(filename)
         i = len(particle_arrays) - len(simulator.particles)
         simulator.next_state()
         simulator.next_state()
@@ -85,3 +90,4 @@ class TestNewSimulation(unittest.TestCase):
             p = Particle(particle_arrays[i][-1], *particle_arrays[i][:-1])
             self.assertEqual(particle, p)
             i += 1
+        file.close()
