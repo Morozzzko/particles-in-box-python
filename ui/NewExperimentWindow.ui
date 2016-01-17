@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>591</width>
+    <width>443</width>
     <height>448</height>
    </rect>
   </property>
@@ -36,7 +36,7 @@
      <rect>
       <x>0</x>
       <y>20</y>
-      <width>200</width>
+      <width>201</width>
       <height>174</height>
      </rect>
     </property>
@@ -158,19 +158,60 @@
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QDoubleSpinBox" name="n_left"/>
+      <widget class="QDoubleSpinBox" name="n_left">
+       <property name="decimals">
+        <number>0</number>
+       </property>
+       <property name="minimum">
+        <double>0.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>500.000000000000000</double>
+       </property>
+       <property name="value">
+        <double>100.000000000000000</double>
+       </property>
+      </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QDoubleSpinBox" name="n_right"/>
+      <widget class="QDoubleSpinBox" name="n_right">
+       <property name="decimals">
+        <number>0</number>
+       </property>
+       <property name="value">
+        <double>100.000000000000000</double>
+       </property>
+      </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QDoubleSpinBox" name="particle_r"/>
+      <widget class="QDoubleSpinBox" name="particle_r">
+       <property name="minimum">
+        <double>0.010000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.010000000000000</double>
+       </property>
+       <property name="value">
+        <double>0.050000000000000</double>
+       </property>
+      </widget>
      </item>
      <item row="3" column="1">
-      <widget class="QDoubleSpinBox" name="v_init"/>
+      <widget class="QDoubleSpinBox" name="v_init">
+       <property name="singleStep">
+        <double>0.010000000000000</double>
+       </property>
+      </widget>
      </item>
      <item row="4" column="1">
-      <widget class="QDoubleSpinBox" name="v_loss"/>
+      <widget class="QDoubleSpinBox" name="v_loss">
+       <property name="maximum">
+        <double>1.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.010000000000000</double>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -327,22 +368,64 @@
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QDoubleSpinBox" name="box_width"/>
+      <widget class="QDoubleSpinBox" name="box_width">
+       <property name="singleStep">
+        <double>0.010000000000000</double>
+       </property>
+       <property name="value">
+        <double>10.000000000000000</double>
+       </property>
+      </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QDoubleSpinBox" name="box_height"/>
+      <widget class="QDoubleSpinBox" name="box_height">
+       <property name="singleStep">
+        <double>0.010000000000000</double>
+       </property>
+       <property name="value">
+        <double>10.000000000000000</double>
+       </property>
+      </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QDoubleSpinBox" name="barrier_x"/>
+      <widget class="QDoubleSpinBox" name="barrier_x">
+       <property name="singleStep">
+        <double>0.010000000000000</double>
+       </property>
+       <property name="value">
+        <double>5.000000000000000</double>
+       </property>
+      </widget>
      </item>
      <item row="3" column="1">
-      <widget class="QDoubleSpinBox" name="barrier_width"/>
+      <widget class="QDoubleSpinBox" name="barrier_width">
+       <property name="singleStep">
+        <double>0.010000000000000</double>
+       </property>
+       <property name="value">
+        <double>1.000000000000000</double>
+       </property>
+      </widget>
      </item>
      <item row="4" column="1">
-      <widget class="QDoubleSpinBox" name="hole_y"/>
+      <widget class="QDoubleSpinBox" name="hole_y">
+       <property name="singleStep">
+        <double>0.010000000000000</double>
+       </property>
+       <property name="value">
+        <double>5.000000000000000</double>
+       </property>
+      </widget>
      </item>
      <item row="5" column="1">
-      <widget class="QDoubleSpinBox" name="hole_height"/>
+      <widget class="QDoubleSpinBox" name="hole_height">
+       <property name="singleStep">
+        <double>0.010000000000000</double>
+       </property>
+       <property name="value">
+        <double>1.000000000000000</double>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -352,19 +435,19 @@
     <rect>
      <x>220</x>
      <y>0</y>
-     <width>201</width>
+     <width>211</width>
      <height>131</height>
     </rect>
    </property>
    <property name="title">
-    <string>Collision speed change</string>
+    <string>Speed change after collision</string>
    </property>
    <widget class="QWidget" name="formLayoutWidget_2">
     <property name="geometry">
      <rect>
       <x>0</x>
       <y>20</y>
-      <width>200</width>
+      <width>211</width>
       <height>106</height>
      </rect>
     </property>
@@ -448,13 +531,25 @@
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QDoubleSpinBox" name="delta_v_top"/>
+      <widget class="QDoubleSpinBox" name="delta_v_top">
+       <property name="singleStep">
+        <double>0.010000000000000</double>
+       </property>
+      </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QDoubleSpinBox" name="delta_v_bottom"/>
+      <widget class="QDoubleSpinBox" name="delta_v_bottom">
+       <property name="singleStep">
+        <double>0.010000000000000</double>
+       </property>
+      </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QDoubleSpinBox" name="delta_v_side"/>
+      <widget class="QDoubleSpinBox" name="delta_v_side">
+       <property name="singleStep">
+        <double>0.010000000000000</double>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -462,7 +557,7 @@
   <widget class="QPushButton" name="button_run">
    <property name="geometry">
     <rect>
-     <x>480</x>
+     <x>330</x>
      <y>410</y>
      <width>101</width>
      <height>28</height>
@@ -471,6 +566,190 @@
    <property name="text">
     <string>Run</string>
    </property>
+  </widget>
+  <widget class="QGroupBox" name="group_misc_settings">
+   <property name="geometry">
+    <rect>
+     <x>220</x>
+     <y>130</y>
+     <width>211</width>
+     <height>131</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Misc settings</string>
+   </property>
+   <widget class="QWidget" name="formLayoutWidget_4">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>20</y>
+      <width>211</width>
+      <height>106</height>
+     </rect>
+    </property>
+    <layout class="QFormLayout" name="form_misc_settings">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetDefaultConstraint</enum>
+     </property>
+     <property name="formAlignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+     </property>
+     <property name="verticalSpacing">
+      <number>6</number>
+     </property>
+     <property name="leftMargin">
+      <number>5</number>
+     </property>
+     <property name="topMargin">
+      <number>5</number>
+     </property>
+     <property name="rightMargin">
+      <number>5</number>
+     </property>
+     <property name="bottomMargin">
+      <number>5</number>
+     </property>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_g">
+       <property name="minimumSize">
+        <size>
+         <width>115</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>115</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>g</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_simulation_time">
+       <property name="minimumSize">
+        <size>
+         <width>115</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>115</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Min. to simulate</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_fps">
+       <property name="minimumSize">
+        <size>
+         <width>115</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>115</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Frames/second</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QDoubleSpinBox" name="g">
+       <property name="minimum">
+        <double>0.100000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.100000000000000</double>
+       </property>
+       <property name="value">
+        <double>9.800000000000001</double>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QDoubleSpinBox" name="simulation_time">
+       <property name="decimals">
+        <number>0</number>
+       </property>
+       <property name="minimum">
+        <double>1.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>180.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QDoubleSpinBox" name="fps">
+       <property name="decimals">
+        <number>0</number>
+       </property>
+       <property name="minimum">
+        <double>1.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>60.000000000000000</double>
+       </property>
+       <property name="value">
+        <double>30.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="group_output_file">
+   <property name="geometry">
+    <rect>
+     <x>220</x>
+     <y>260</y>
+     <width>211</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Output file</string>
+   </property>
+   <widget class="QLineEdit" name="output_file">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>20</y>
+      <width>181</width>
+      <height>30</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QToolButton" name="output_file_button">
+    <property name="geometry">
+     <rect>
+      <x>176</x>
+      <y>20</y>
+      <width>30</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>...</string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources/>
