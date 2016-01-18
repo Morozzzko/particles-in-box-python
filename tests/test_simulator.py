@@ -53,7 +53,7 @@ class TestNewSimulation(unittest.TestCase):
                 simulator.delta_v_side, simulator.barrier_x,
                 simulator.barrier_width, simulator.hole_y,
                 simulator.hole_height, simulator.v_loss,
-                simulator.particle_r, len(simulator.simulator.particles), simulator.g)
+                simulator.particle_r, len(simulator.particles), simulator.g)
 
     def test_initial_distribution_v_init(self):
         for particle in self.simulator.particles:
