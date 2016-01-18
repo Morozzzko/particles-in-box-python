@@ -76,10 +76,11 @@ class Simulator:
 
     def simulate(self, num_of_seconds, num_of_snapshots):
         """
-        Simulate movement of the particle with specify number of seconds
-        :param num_of_seconds: number of seconds for the simulation
+        Simulate particle movement for the provided number of seconds, yield snapshots with the provided frequency
+
+        :param num_of_seconds: number of seconds to simulate
         :type num_of_seconds: float
-        :param num_of_snapshots: number of snapshots makes in one second
+        :param num_of_snapshots: number of snapshots to save in one second (frequency)
         :type num_of_snapshots: float
         :return:
         """
