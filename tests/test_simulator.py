@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from particles.core import Particle
-from particles.simulation import Simulator, BinarySimulator
+from particles.simulation import Simulator, Playback
 import unittest
 from struct import *
 from math import floor
@@ -78,15 +78,15 @@ class TestNewSimulation(unittest.TestCase):
                            [13.13, 14.14, 15.15, 16.16, 2],
                            [1.11, 2.22, 3.33, 4.44, 1],
                            [3, 6.66, 7.77, 8.88, 2]]
-        file.write(pack(BinarySimulator.str_decode, *parameters))
+        file.write(pack(Simulator.str_decode, *parameters))
         for particle in particle_arrays:
             file.write(pack(Particle.str_decode, *particle))
         file.close()
-        simulator = BinarySimulator(filename)
-        i = len(particle_arrays) - len(simulator.particles)
-        simulator.next_state()
-        simulator.next_state()
-        for particle in simulator.particles:
+        playback = Playback(filename)
+        i = len(particle_arrays) - len(playback.simulator.particles)
+        playback.next_state()
+        playback.next_state()
+        for particle in playback.simulator.particles:
             p = Particle(particle_arrays[i][-1], *particle_arrays[i][:-1])
             self.assertEqual(particle, p)
             i += 1

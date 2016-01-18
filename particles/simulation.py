@@ -39,6 +39,9 @@ class Simulator:
         * time_step - number of seconds to be elapsed between current and next step. should not be set manually
     """
 
+    str_decode = "dddddddddddiidd"
+    size = struct.calcsize(str_decode)
+
     __slots__ = ['box_width', 'box_height',
                  'delta_v_top', 'delta_v_bottom', 'delta_v_side',
                  'barrier_x', 'barrier_width', 'hole_y', 'hole_height',
@@ -298,29 +301,27 @@ class Simulator:
         return particles
 
 
-class BinarySimulator(Simulator):
-    """
-    Simulator which creates from the binary file.
-    """
-    str_decode = "dddddddddddiidd"
-
+class Playback:
     def __init__(self, file_name):
         self.file_name = file_name
         with open(file_name, mode='br') as file:
             (box_width, box_height, delta_v_top,
              delta_v_bottom, delta_v_side, barrier_x,
              barrier_width, hole_y, hole_height, v_loss,
-             particle_r, n_left, n_right, v_init, g) = struct.unpack(self.str_decode,
-                                                                     file.read(struct.calcsize(self.str_decode)))
+             particle_r, n_left, n_right, v_init, g) = struct.unpack(Simulator.str_decode,
+                                                                     file.read(Simulator.size))
             particles = []
             for i in range(n_left + n_right):
                 data = file.read(Particle.size)
                 particles.append(Particle(data))
-            super(BinarySimulator, self).__init__(box_width=box_width, box_height=box_height, delta_v_top=delta_v_top,
-                                                  delta_v_bottom=delta_v_bottom, delta_v_side=delta_v_side, barrier_x=barrier_x,
-                                                  barrier_width=barrier_width, hole_y=hole_y, hole_height=hole_height, v_loss=v_loss,
-                                                  particle_r=particle_r, n_left=n_left, n_right=n_right, v_init=v_init, g=g,
-                                                  particles=particles)
+            self.simulator = Simulator(box_width=box_width, box_height=box_height, delta_v_top=delta_v_top,
+                                       delta_v_bottom=delta_v_bottom, delta_v_side=delta_v_side,
+                                       barrier_x=barrier_x,
+                                       barrier_width=barrier_width, hole_y=hole_y, hole_height=hole_height,
+                                       v_loss=v_loss,
+                                       particle_r=particle_r, n_left=n_left, n_right=n_right, v_init=v_init,
+                                       g=g,
+                                       particles=particles)
 
             self.pointer = file.tell()
 
@@ -331,6 +332,6 @@ class BinarySimulator(Simulator):
         """
         with open(self.file_name, mode='rb') as file:
             file.seek(self.pointer)
-            self.particles = [Particle(file.read(Particle.size))
-                              for particle in self.particles]
+            self.simulator.particles = [Particle(file.read(Particle.size))
+                                        for particle in self.simulator.particles]
             self.pointer = file.tell()
