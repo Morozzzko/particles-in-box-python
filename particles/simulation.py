@@ -205,7 +205,7 @@ class Simulator:
                     else:
                         particle.pos_x = barrier_x_right
                         particle.velocity_x = -particle.velocity_x + delta_v_side
-            return time_step
+        return time_step
 
     def calculate_time_step(self):
         """Calculate the time step for simulation.
