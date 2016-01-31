@@ -85,9 +85,7 @@ class Simulator:
         :return:
         """
         curr_t = 0
-        snap_seconds = [1 / num_of_snapshots * t for t in range(floor(num_of_seconds * num_of_snapshots) + 1)]
-        snap_seconds.pop(0)
-        yield (curr_t, copy.copy(self.particles))
+        snap_seconds = [1 / num_of_snapshots * t for t in range(1, floor(num_of_seconds * num_of_snapshots) + 1)]
         while curr_t < num_of_seconds and snap_seconds:
             time_step = self.next_state()
             if curr_t < snap_seconds[0] < curr_t + time_step:

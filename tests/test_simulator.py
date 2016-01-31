@@ -89,7 +89,7 @@ class TestNewSimulation(unittest.TestCase):
         num_of_snap = 4
         simulation = self.simulator.simulate(num_of_sec, num_of_snap)
         num_of_states = sum([1 for state in simulation])
-        self.assertEqual(num_of_states, floor(num_of_sec * num_of_snap) + 1)
+        self.assertEqual(num_of_states, floor(num_of_sec * num_of_snap))
 
     def test_bin_simulator(self):
         directory = tempfile.TemporaryDirectory()
