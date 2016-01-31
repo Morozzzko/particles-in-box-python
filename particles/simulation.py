@@ -87,12 +87,14 @@ class Simulator:
         curr_t = 0
         snap_seconds = [1 / num_of_snapshots * t for t in range(floor(num_of_seconds * num_of_snapshots) + 1)]
         snap_seconds.pop(0)
-        yield copy.copy(self.particles)
+        yield (curr_t, copy.copy(self.particles))
         while curr_t < num_of_seconds and snap_seconds:
-            if curr_t < snap_seconds[0] < curr_t + self.calculate_time_step():
+            time_step = self.next_state()
+            if curr_t < snap_seconds[0] < curr_t + time_step:
                 snap_seconds.pop(0)
-                yield copy.copy(self.particles)
-            curr_t += self.calculate_time_step()
+                yield (curr_t, copy.copy(self.particles))
+            curr_t += time_step
+            self.time_elapsed += curr_t
 
     def next_state(self):
         """
@@ -103,7 +105,8 @@ class Simulator:
         Then, check if any particle collides with walls. If so, move them and rotate their velocity vector
 
 
-        :return:
+        :return: period of time after which there make a simulation
+        :rtype: float
         """
         time_step = self.calculate_time_step()
         gravity_pull = self.g * (time_step ** 2) / 2
@@ -202,6 +205,7 @@ class Simulator:
                     else:
                         particle.pos_x = barrier_x_right
                         particle.velocity_x = -particle.velocity_x + delta_v_side
+            return time_step
 
     def calculate_time_step(self):
         """Calculate the time step for simulation.
