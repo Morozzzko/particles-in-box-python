@@ -39,7 +39,7 @@ class Simulator:
         * time_step - number of seconds to be elapsed between current and next step. should not be set manually
     """
 
-    str_decode = "dddddddddddiidd"
+    str_decode = "ddddddddddddi"
     size = struct.calcsize(str_decode)
 
     __slots__ = ['box_width', 'box_height',
@@ -311,10 +311,11 @@ class Playback:
             (box_width, box_height, delta_v_top,
              delta_v_bottom, delta_v_side, barrier_x,
              barrier_width, hole_y, hole_height, v_loss,
-             particle_r, n_left, n_right, v_init, g) = struct.unpack(Simulator.str_decode,
-                                                                     file.read(Simulator.size))
+             particle_r, g, n_particles) = struct.unpack(Simulator.str_decode,
+                                                         file.read(Simulator.size))
+            time_elapsed = struct.unpack("d", file.read(struct.calcsize("d")))
             particles = []
-            for i in range(n_left + n_right):
+            for i in range(n_particles):
                 data = file.read(Particle.size)
                 particles.append(Particle(data))
             self.simulator = Simulator(box_width=box_width, box_height=box_height, delta_v_top=delta_v_top,
@@ -322,9 +323,10 @@ class Playback:
                                        barrier_x=barrier_x,
                                        barrier_width=barrier_width, hole_y=hole_y, hole_height=hole_height,
                                        v_loss=v_loss,
-                                       particle_r=particle_r, n_left=n_left, n_right=n_right, v_init=v_init,
+                                       particle_r=particle_r,
                                        g=g,
                                        particles=particles)
+            self.simulator.time_elapsed = time_elapsed
 
             self.pointer = file.tell()
 
@@ -333,8 +335,10 @@ class Playback:
         Read data from the file for the next simulation
         :return:
         """
+        size_double = struct.calcsize("d")
         with open(self.file_name, mode='rb') as file:
             file.seek(self.pointer)
+            self.simulator.time_elapsed = struct.unpack("d", file.read(size_double))
             self.simulator.particles = [Particle(file.read(Particle.size))
                                         for particle in self.simulator.particles]
             self.pointer = file.tell()
