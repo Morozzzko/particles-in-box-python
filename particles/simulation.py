@@ -94,6 +94,37 @@ class Simulator:
             curr_t += time_step
             self.time_elapsed += curr_t
 
+    def simulate_to_file(self, file_path, num_seconds, num_snapshots, write_head=True):
+        """
+        Simulate particle movement for the provided number of seconds, save num_snapshots per second in file.
+
+        If write_head is True, write the simulator's parameters and current state at the beginning of the file.
+
+        :param file_path: path to the destination file
+        :type file_path: str
+        :param num_seconds: number of seconds to simulate
+        :type num_seconds: float
+        :param num_snapshots: number of snapshots to save in one second (frequency)
+        :type num_snapshots: float
+        :param write_head: flag determining if the
+        :type write_head: bool
+        :return:
+        """
+        with open(file_path, "w+") as f:
+            if write_head:
+                f.write(struct.pack(self.str_decode, self.box_width, self.box_height, self.delta_v_top,
+                                    self.delta_v_bottom, self.delta_v_side, self.barrier_x,
+                                    self.barrier_width, self.hole_y, self.hole_height, self.v_loss,
+                                    self.particle_r, self.g, len(self.particles)))
+                f.write(struct.pack("d", self.time_elapsed))
+                for particle in self.particles:
+                    f.write(bytes(particle))
+
+            for (time_elapsed, particles) in self.simulate(num_seconds=num_seconds, num_snapshots=num_snapshots):
+                f.write(struct.pack("d", time_elapsed))
+                for particle in particles:
+                    f.write(bytes(particle))
+
     def next_state(self):
         """
         Perform simulation of the particle movement.
