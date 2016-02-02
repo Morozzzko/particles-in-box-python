@@ -74,19 +74,19 @@ class Simulator:
         else:
             self.particles = self.distribute_particles(n_left=n_left, n_right=n_right, v_init=v_init)
 
-    def simulate(self, num_of_seconds, num_of_snapshots):
+    def simulate(self, num_seconds, num_snapshots):
         """
         Simulate particle movement for the provided number of seconds, yield snapshots with the provided frequency
 
-        :param num_of_seconds: number of seconds to simulate
-        :type num_of_seconds: float
-        :param num_of_snapshots: number of snapshots to save in one second (frequency)
-        :type num_of_snapshots: float
+        :param num_seconds: number of seconds to simulate
+        :type num_seconds: float
+        :param num_snapshots: number of snapshots to save in one second (frequency)
+        :type num_snapshots: float
         :return:
         """
         curr_t = 0
-        snap_seconds = [1 / num_of_snapshots * t for t in range(1, floor(num_of_seconds * num_of_snapshots) + 1)]
-        while curr_t < num_of_seconds and snap_seconds:
+        snap_seconds = [1 / num_snapshots * t for t in range(1, floor(num_seconds * num_snapshots) + 1)]
+        while curr_t < num_seconds and snap_seconds:
             time_step = self.next_state()
             if curr_t < snap_seconds[0] < curr_t + time_step:
                 snap_seconds.pop(0)
