@@ -5,14 +5,14 @@ from math import sqrt
 
 
 class Particle:
-    str_decode = "ddddb"
-    size = struct.calcsize(str_decode)
+    STRUCT_FORMAT = "ddddh"
+    STRUCT_SIZE = struct.calcsize(STRUCT_FORMAT)
 
     __slots__ = ['pos_x', 'pos_y', 'velocity_x', 'velocity_y', 'id']
 
     def __init__(self, id, pos_x=0.0, pos_y=0.0, velocity_x=0.0, velocity_y=0.0):
         if isinstance(id, bytes):
-            (self.pos_x, self.pos_y, self.velocity_x, self.velocity_y, self.id) = struct.unpack("ddddb", id)
+            (self.pos_x, self.pos_y, self.velocity_x, self.velocity_y, self.id) = struct.unpack(self.STRUCT_FORMAT, id)
         else:
             self.pos_x = pos_x
             self.pos_y = pos_y
@@ -28,7 +28,7 @@ class Particle:
                                                                         id=self.id)
 
     def __bytes__(self):
-        return struct.pack(self.str_decode, self.pos_x, self.pos_y, self.velocity_x, self.velocity_y, self.id)
+        return struct.pack(self.STRUCT_FORMAT, self.pos_x, self.pos_y, self.velocity_x, self.velocity_y, self.id)
 
     def __eq__(self, other):
         if not isinstance(other, Particle):
