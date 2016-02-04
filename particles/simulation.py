@@ -92,7 +92,7 @@ class Simulator:
                 snap_seconds.pop(0)
                 yield (curr_t, copy.copy(self.particles))
             curr_t += time_step
-            self.time_elapsed += curr_t
+            self.time_elapsed += time_step
 
     def simulate_to_file(self, file_path, num_seconds, num_snapshots, write_head=True):
         """
@@ -124,6 +124,7 @@ class Simulator:
                 f.write(struct.pack("d", time_elapsed))
                 for particle in particles:
                     f.write(bytes(particle))
+                yield
 
     def next_state(self):
         """
@@ -176,8 +177,7 @@ class Simulator:
             particle_overlaps = particle.overlaps
             particle_is_approaching = particle.is_approaching
             particle_distance_to = particle.distance_to
-            for idx in range(i, len(particles)):
-                other_particle = particles[idx]
+            for other_particle in particles[i + 1:]:
                 dy = particle.pos_y - other_particle.pos_y
                 if dy < particle_r_squared:
                     continue

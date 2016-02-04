@@ -1,9 +1,12 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 from sys import argv
 from PySide import QtGui
 from particles.gui import Ui_NewExperimentWindow
 from particles.simulation import Simulator
+import datetime
+import os.path
 
 
 class NewExperimentWindow(QtGui.QMainWindow):
@@ -13,6 +16,8 @@ class NewExperimentWindow(QtGui.QMainWindow):
         # Set up UI
         self.ui = Ui_NewExperimentWindow()
         self.ui.setupUi(self)
+
+        self.ui.output_file.setText(datetime.datetime.now().strftime("Particles_in_box_%Y-%m-%d_%H-%M-%S.bin"))
 
         # Connect slots to signals
         self.ui.button_run.clicked.connect(self.run_simulation)
@@ -51,7 +56,19 @@ class NewExperimentWindow(QtGui.QMainWindow):
                                   barrier_width=barrier_width, hole_y=hole_y, hole_height=hole_height, v_loss=v_loss,
                                   particle_r=particle_r, n_left=n_left, n_right=n_right, v_init=v_init, g=g)
             num_states = simulation_time * 60 * fps
-            # TODO: perform simulation and save to file
+
+            dialog = QtGui.QProgressDialog("Simulating into " + os.path.basename(file),
+                                           "Cancel",
+                                           0,
+                                           num_states)
+            dialog.show()
+            dialog.setValue(0)
+            for state_num, _ in enumerate(simulator.simulate_to_file(file_path=file,
+                                                        num_seconds=simulation_time * 60,
+                                                        num_snapshots=fps,
+                                                        write_head=True)):
+                dialog.setValue(state_num)
+
         except IOError as e:
             QtGui.QMessageBox.critical(self, "Error!", str(e))
         except Exception as e:
