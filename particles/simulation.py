@@ -110,7 +110,7 @@ class Simulator:
         :type write_head: bool
         :return:
         """
-        with open(file_path, "w+") as f:
+        with open(file_path, "wb") as f:
             if write_head:
                 f.write(struct.pack(self.str_decode, self.box_width, self.box_height, self.delta_v_top,
                                     self.delta_v_bottom, self.delta_v_side, self.barrier_x,
@@ -347,7 +347,7 @@ class Playback:
             time_elapsed = struct.unpack("d", file.read(struct.calcsize("d")))
             particles = []
             for i in range(n_particles):
-                data = file.read(Particle.size)
+                data = file.read(Particle.STRUCT_SIZE)
                 particles.append(Particle(data))
             self.simulator = Simulator(box_width=box_width, box_height=box_height, delta_v_top=delta_v_top,
                                        delta_v_bottom=delta_v_bottom, delta_v_side=delta_v_side,
@@ -370,6 +370,6 @@ class Playback:
         with open(self.file_name, mode='rb') as file:
             file.seek(self.pointer)
             self.simulator.time_elapsed = struct.unpack("d", file.read(size_double))
-            self.simulator.particles = [Particle(file.read(Particle.size))
+            self.simulator.particles = [Particle(file.read(Particle.STRUCT_SIZE))
                                         for particle in self.simulator.particles]
             self.pointer = file.tell()
