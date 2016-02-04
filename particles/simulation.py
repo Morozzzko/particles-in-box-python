@@ -3,7 +3,7 @@
 from particles.core import Particle
 import random, struct
 import copy
-from math import sin, cos, floor
+from math import sin, cos, floor, sqrt
 
 
 class Simulator:
@@ -243,7 +243,7 @@ class Simulator:
         are missed, or any particles fly out of the box.
         The time step is calculated so that the fastest particle will not travel over an eighth of its radius.
 
-        If the system has become static (i.e. max speed is 0) the returned time is 1 second.
+        If the system has become stationary (i.e. max speed is 0) the returned time is equal to R / (4 * g)
 
         :return:
         :rtype: float
@@ -251,7 +251,7 @@ class Simulator:
         fastest_particle = max(self.particles, key=lambda x: x.speed())
         max_velocity = fastest_particle.speed()
         max_distance = self.particle_r / 8
-        return max_distance / max_velocity if max_velocity else 1.0
+        return max_distance / max_velocity if max_velocity else sqrt(self.particle_r / (4 * self.g))
 
     def distribute_particles(self, n_left: int = 500, n_right: int = 500, v_init: float = 0.0):
         """
