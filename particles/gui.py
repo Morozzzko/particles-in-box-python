@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/NewExperimentWindow.ui'
 #
-# Created: Sun Jan 17 22:00:02 2016
+# Created: Thu Feb  4 15:23:25 2016
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -193,6 +193,9 @@ class Ui_NewExperimentWindow(object):
         self.form_collision_settings.setWidget(2, QtGui.QFormLayout.FieldRole, self.delta_v_side)
         self.button_run = QtGui.QPushButton(NewExperimentWindow)
         self.button_run.setGeometry(QtCore.QRect(330, 410, 101, 28))
+        self.button_run.setAutoDefault(True)
+        self.button_run.setDefault(True)
+        self.button_run.setFlat(False)
         self.button_run.setObjectName("button_run")
         self.group_misc_settings = QtGui.QGroupBox(NewExperimentWindow)
         self.group_misc_settings.setGeometry(QtCore.QRect(220, 130, 211, 131))
