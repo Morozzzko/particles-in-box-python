@@ -4,6 +4,8 @@ from particles.core import Particle
 import random, struct
 import copy
 from math import sin, cos, floor
+from particles.core import IDX_X, IDX_Y, IDX_V_X, IDX_V_Y, IDX_ID, speeds, distances, overlaps, approaching
+import numpy as np
 
 
 class Simulator:
@@ -54,7 +56,7 @@ class Simulator:
                  n_left: int = 500, n_right: int = 500,
                  v_init: float = 0.0,
                  g: float = 9.8,
-                 particles: list = None):
+                 particles: np.matrix = None):
         # TODO: add argument validation
         self.box_width = box_width
         self.box_height = box_height
@@ -69,7 +71,7 @@ class Simulator:
         self.particle_r = particle_r
         self.g = g
         self.time_elapsed = 0.0
-        if particles:
+        if particles.shape != (0, 0):
             self.particles = particles
         else:
             self.particles = self.distribute_particles(n_left=n_left, n_right=n_right, v_init=v_init)
@@ -125,83 +127,112 @@ class Simulator:
         barrier_x_right = barrier_x + self.barrier_width / 2 + particle_r
         barrier_x_real_left = barrier_x_left + particle_r
         barrier_x_real_right = barrier_x_right - particle_r
-        barrier_y_min = self.hole_y - self.hole_height / 2 + particle_r
-        barrier_y_max = self.hole_y + self.hole_height / 2 - particle_r
+        hole_y_min = self.hole_y - self.hole_height / 2 + particle_r
+        hole_y_max = self.hole_y + self.hole_height / 2 - particle_r
         delta_v_top = self.delta_v_top
         delta_v_bottom = self.delta_v_bottom
         delta_v_side = self.delta_v_side
 
         # Move all the particles
-        for particle in self.particles:
-            particle.pos_x += particle.velocity_x * time_step
-            particle.pos_y += particle.velocity_y * time_step - gravity_pull
-            particle.velocity_y -= self.g * time_step
-
-        particles.sort(key=lambda x: x.pos_y)
+        particles[IDX_X, :] += particles[IDX_V_X, :] * time_step
+        particles[IDX_Y, :] += particles[IDX_V_Y, :] * time_step - gravity_pull
+        particles[IDX_V_Y, :] -= self.g * time_step
 
         # Check collisions between particles
-        for (i, particle) in enumerate(particles):
-            particle_overlaps = particle.overlaps
-            particle_is_approaching = particle.is_approaching
-            particle_distance_to = particle.distance_to
-            for idx in range(i, len(particles)):
-                other_particle = particles[idx]
-                dy = particle.pos_y - other_particle.pos_y
-                if dy < particle_r_squared:
-                    continue
-                if particle_overlaps(other_particle, particle_r) and particle_is_approaching(other_particle):
-                    particle.velocity_x *= speed_factor
-                    particle.velocity_y *= speed_factor
-                    other_particle.velocity_x *= speed_factor
-                    other_particle.velocity_y *= speed_factor
+        for curr_particle in range((particles.shape)[1]):
+            other_particles = np.array([element for element in range((particles.shape)[1]) if element != curr_particle])
+            dy = particles[IDX_Y, curr_particle] - particles[IDX_Y, other_particles]
+            overlapsed_particles = overlaps(particles[:, curr_particle],
+                                            particles[:, other_particles],
+                                            particle_r)
+            approaching_particles = approaching(particles[:, curr_particle],
+                                                particles[:, other_particles])
+            check_conditions = np.logical_and(overlapsed_particles, approaching_particles)
+            particles_to_move = other_particles[np.where(check_conditions)]
 
-                    dx = particle.pos_x - other_particle.pos_x
-                    distance_between_particles = particle_distance_to(other_particle)
-                    distance_to_move = particle_r_2 - distance_between_particles
-                    if dy > 0:
-                        particle.pos_x += distance_to_move * (dx / distance_between_particles)
-                        particle.pos_y += distance_to_move * (dy / distance_between_particles)
-                    else:
-                        other_particle.pos_x -= distance_to_move * (dx / distance_between_particles)
-                        other_particle.pos_y -= distance_to_move * (dy / distance_between_particles)
+            if particles_to_move.size == 0:
+                continue
+
+            particles[IDX_V_X, curr_particle] *= speed_factor ** particles_to_move.size
+            particles[IDX_V_Y, curr_particle] *= speed_factor ** particles_to_move.size
+            particles[IDX_V_X, particles_to_move] *= speed_factor
+            particles[IDX_V_Y, particles_to_move] *= speed_factor
+
+            dx = particles[IDX_X, curr_particle] - particles[IDX_X, particles_to_move]
+            distance_between_particles = distances(particles[:, curr_particle],
+                                                   particles[:, particles_to_move])
+            distance_to_move = particle_r_2 - distance_between_particles
+
+            parts = np.searchsorted(other_particles, particles_to_move)
+            particles_dy_positive = particles_to_move[np.where(dy[parts] > 0)]
+            particles_dy_negative = particles_to_move[np.where(dy[parts] < 0)]
+
+            ind_positive = np.searchsorted(particles_to_move, particles_dy_positive)
+            ind_negative = np.searchsorted(particles_to_move, particles_dy_negative)
+            if particles_dy_positive.size != 0:
+                particles[IDX_V_X, curr_particle] += np.sum(np.multiply(distance_to_move[ind_positive],
+                                                                        np.divide(dx[ind_positive],
+                                                                                  distance_to_move[ind_positive])))
+                particles[IDX_V_Y, curr_particle] += np.sum(np.multiply(distance_to_move[ind_positive],
+                                                                        np.divide(dy[ind_positive],
+                                                                                  distance_to_move[ind_positive])))
+            if particles_dy_negative.size != 0:
+                particles[IDX_V_X, particles_dy_negative] -=\
+                    np.sum(np.multiply(distance_to_move[ind_negative], np.divide(dx[ind_negative],
+                                                                                 distance_to_move[ind_negative])))
+                particles[IDX_V_X, particles_dy_positive] -=\
+                    np.sum(np.multiply(distance_to_move[ind_negative], np.divide(dx[ind_negative],
+                                                                                 distance_to_move[ind_negative])))
 
         # Check collision with walls
 
-        for particle in particles:
-            pos_x = particle.pos_x
-            pos_y = particle.pos_y
-            velocity_x = particle.velocity_x
-            velocity_y = particle.velocity_y
-            if pos_y > y_max and velocity_y > 0:  # box ceiling
-                particle.pos_y = y_max
-                particle.velocity_y = -velocity_y - delta_v_top
-            elif pos_y < y_min and velocity_y < 0:  # box floor
-                particle.pos_y = y_min
-                particle.velocity_y = -velocity_y + delta_v_bottom
+        # box top
+        idx_top_particles = np.where((particles[IDX_Y, :] > y_max) & (particles[IDX_V_Y, :] > 0))
+        particles[IDX_Y, idx_top_particles] = y_max
+        particles[IDX_V_Y, idx_top_particles] = -particles[IDX_V_Y, idx_top_particles] - delta_v_top
 
-            if pos_x > x_max and velocity_x > 0:  # box right side
-                particle.pos_x = x_max
-                particle.velocity_x = -velocity_x - delta_v_side
-            elif pos_x < x_min and velocity_x < 0:  # box left side
-                particle.pos_x = x_min
-                particle.velocity_x = -velocity_x + delta_v_side
-            elif barrier_x_left < pos_x < barrier_x_right:  # barrier collisions
-                velocity_y = particle.velocity_y  # in case particle has collided with the top
-                pos_y = particle.pos_y
-                if barrier_x_real_left < pos_x < barrier_x_real_right:  # if the particle is within the hole
-                    if pos_y > barrier_y_max and velocity_y > 0:
-                        particle.pos_y = barrier_y_max
-                        particle.velocity_y = -velocity_y - delta_v_top
-                    elif pos_y < barrier_y_min and velocity_y < 0:
-                        particle.pos_y = barrier_y_min
-                        particle.velocity_y = -velocity_y + delta_v_bottom
-                elif pos_y < barrier_y_min or pos_y > barrier_y_max:
-                    if pos_x < barrier_x:
-                        particle.pos_x = barrier_x_left
-                        particle.velocity_x = -particle.velocity_x - delta_v_side
-                    else:
-                        particle.pos_x = barrier_x_right
-                        particle.velocity_x = -particle.velocity_x + delta_v_side
+        # box bot
+        idx_bot_particles = np.where((particles[IDX_Y, :] < y_min) & (particles[IDX_V_Y, :] < 0))
+        particles[IDX_Y, idx_bot_particles] = y_min
+        particles[IDX_V_Y, idx_bot_particles] = -particles[IDX_V_Y, idx_bot_particles] + delta_v_bottom
+
+        # box right side
+        idx_right_particles = np.where((particles[IDX_X, :] > x_max) & (particles[IDX_V_X, :] > 0))
+        particles[IDX_Y, idx_right_particles] = x_max
+        particles[IDX_V_Y, idx_right_particles] = -particles[IDX_V_X, idx_right_particles] - delta_v_side
+
+        # box left side
+        idx_left_particles = np.where((particles[IDX_X, :] < x_min) & (particles[IDX_V_X, :] < 0))
+        particles[IDX_Y, idx_left_particles] = x_min
+        particles[IDX_V_Y, idx_left_particles] = -particles[IDX_V_X, idx_left_particles] + delta_v_side
+
+        # collision with the barrier
+        idx_around_hole_particles = np.where((particles[IDX_Y, :] < hole_y_min) |
+                                             (particles[IDX_Y, :] > hole_y_max))
+        idx_left_barrier_particles = np.where((particles[IDX_X, idx_around_hole_particles] > barrier_x_left) &
+                                              (particles[IDX_X, idx_around_hole_particles] < barrier_x))
+        idx_right_barrier_particles = np.where((particles[IDX_X, idx_around_hole_particles] > barrier_x) &
+                                               (particles[IDX_X, idx_around_hole_particles] < barrier_x_right))
+
+        particles[IDX_X, idx_left_barrier_particles] = barrier_x_left
+        particles[IDX_V_X, idx_left_barrier_particles] = -particles[IDX_V_X, idx_left_barrier_particles] - delta_v_side
+
+        particles[IDX_X, idx_right_barrier_particles] = barrier_x_right
+        particles[IDX_V_X, idx_right_barrier_particles] = -particles[IDX_V_X, idx_right_barrier_particles] + delta_v_side
+
+        # within hole
+        idx_within_hole_particles = np.where((particles[IDX_X, :] > barrier_x_real_left) &
+                                             (particles[IDX_X, :] < barrier_x_real_right))
+        idx_top_hole_particles = np.where((particles[IDX_Y, idx_within_hole_particles] > hole_y_max) &
+                                          (particles[IDX_V_Y, idx_within_hole_particles] > 0))
+        idx_bot_hole_particles = np.where((particles[IDX_Y, idx_within_hole_particles] < hole_y_min) &
+                                          (particles[IDX_V_Y, idx_within_hole_particles] < 0))
+
+        particles[IDX_Y, idx_bot_hole_particles] = hole_y_min
+        particles[IDX_V_Y, idx_bot_hole_particles] = -particles[IDX_V_Y, idx_bot_hole_particles] + delta_v_top
+
+        particles[IDX_Y, idx_top_hole_particles] = hole_y_max
+        particles[IDX_V_Y, idx_top_hole_particles] = -particles[IDX_V_Y, idx_top_hole_particles] - delta_v_top
 
     def calculate_time_step(self):
         """Calculate the time step for simulation.
@@ -215,8 +246,7 @@ class Simulator:
         :return:
         :rtype: float
         """
-        fastest_particle = max(self.particles, key=lambda x: x.speed())
-        max_velocity = fastest_particle.speed()
+        max_velocity = max(speeds(self.particles))
         max_distance = self.particle_r / 8
         return max_distance / max_velocity if max_velocity else 1.0
 
