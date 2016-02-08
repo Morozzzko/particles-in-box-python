@@ -34,9 +34,21 @@ class Simulator:
     If the parameter is specified, then n_left, n_right and v_init will be ignored. Otherwise,
     a new list of particles will be created.
 
+    The following properties are calculated during instantiation and MUST be recalculated
+    if the simulator geometry changes. For consistency, the properties that limit particle
+    position are named as min/max, while the properties representing actual box geometry
+    are named left/right/top/bottom
+        * x_min, x_max, y_min, y_max - X and Y limits. For any particle with the center at (X, Y)
+        (x_min, y_min) <= (X, Y) <= (x_max, y_max).
+        * barrier_x_min, barrier_x_max - X limits used to calculate particle-to-barrier collision.
+        Particle collides with barrier if barrier_x_min < X < barrier_x_max.
+        * hole_y_min, hole_y_max - Y limits for particles inside the hole. hole_y_min <= Y <= hole_y_max.
+        * hole_y_top, hole_y_bottom - real Y for hole top and bottom border, respectively.
+        * barrier_x_left, barrier_x_right - real X for barrier's left and right side, respectively.
+
     This class also provides some properties that are generated during simulation and can be of use:
-        * time_elapsed - number of seconds passed since the start of the simulation
-        * time_step - number of seconds to be elapsed between current and next step. should not be set manually
+        * time_elapsed - number of seconds passed since the start of the simulation.
+        * time_step - number of seconds to be elapsed between current and next step. should not be set manually.
     """
 
     str_decode = "ddddddddddddi"
@@ -45,7 +57,10 @@ class Simulator:
     __slots__ = ['box_width', 'box_height',
                  'delta_v_top', 'delta_v_bottom', 'delta_v_side',
                  'barrier_x', 'barrier_width', 'hole_y', 'hole_height',
-                 'v_loss', 'g', 'particle_r', 'particles', 'time_step', 'time_elapsed']
+                 'v_loss', 'g', 'particle_r', 'particles', 'time_step', 'time_elapsed',
+                 'x_min', 'x_max', 'y_min', 'y_max', 'barrier_x_min', 'barrier_x_max',
+                 'barrier_x_left', 'barrier_x_right', 'hole_y_min', 'hole_y_max',
+                 'hole_y_top', 'hole_y_bottom']
 
     def __init__(self, box_width: float, box_height: float,
                  delta_v_top: float, delta_v_bottom: float, delta_v_side: float,
@@ -69,6 +84,20 @@ class Simulator:
         self.particle_r = particle_r
         self.g = g
         self.time_elapsed = 0.0
+
+        self.x_min = particle_r
+        self.x_max = self.box_width - particle_r
+        self.y_min = self.x_min
+        self.y_max = self.box_height - particle_r
+        self.barrier_x_min = barrier_x - self.barrier_width / 2 - particle_r
+        self.barrier_x_max = barrier_x + self.barrier_width / 2 + particle_r
+        self.hole_y_top = self.hole_y + self.hole_height / 2
+        self.hole_y_bottom = self.hole_y - self.hole_height / 2
+        self.barrier_x_left = barrier_x - self.barrier_width / 2
+        self.barrier_x_right = barrier_x + self.barrier_width / 2
+        self.hole_y_min = self.hole_y_bottom + particle_r
+        self.hole_y_max = self.hole_y_top - particle_r
+
         if particles:
             self.particles = particles
         else:
@@ -149,17 +178,19 @@ class Simulator:
 
         speed_factor = 1 - self.v_loss
 
-        x_min = particle_r
-        x_max = self.box_width - particle_r
-        y_min = x_min
-        y_max = self.box_height - particle_r
+
+        x_min = self.x_min
+        x_max = self.x_max
+        y_min = self.y_min
+        y_max = self.y_max
         barrier_x = self.barrier_x
-        barrier_x_left = barrier_x - self.barrier_width / 2 - particle_r
-        barrier_x_right = barrier_x + self.barrier_width / 2 + particle_r
-        barrier_x_real_left = barrier_x_left + particle_r
-        barrier_x_real_right = barrier_x_right - particle_r
-        barrier_y_min = self.hole_y - self.hole_height / 2 + particle_r
-        barrier_y_max = self.hole_y + self.hole_height / 2 - particle_r
+        barrier_x_min = self.barrier_x_min
+        barrier_x_max = self.barrier_x_max
+        barrier_x_left = self.barrier_x_left
+        barrier_x_right = self.barrier_x_right
+        hole_y_max = self.hole_y_max
+        hole_y_min = self.hole_y_min
+
         delta_v_top = self.delta_v_top
         delta_v_bottom = self.delta_v_bottom
         delta_v_side = self.delta_v_side
@@ -217,22 +248,22 @@ class Simulator:
             elif pos_x < x_min and velocity_x < 0:  # box left side
                 particle.pos_x = x_min
                 particle.velocity_x = -velocity_x + delta_v_side
-            elif barrier_x_left < pos_x < barrier_x_right:  # barrier collisions
+            elif barrier_x_min < pos_x < barrier_x_max:  # barrier collisions
                 velocity_y = particle.velocity_y  # in case particle has collided with the top
                 pos_y = particle.pos_y
-                if barrier_x_real_left < pos_x < barrier_x_real_right:  # if the particle is within the hole
-                    if pos_y > barrier_y_max and velocity_y > 0:
-                        particle.pos_y = barrier_y_max
+                if barrier_x_left < pos_x < barrier_x_right:  # if the particle is within the hole
+                    if pos_y > hole_y_min and velocity_y > 0:
+                        particle.pos_y = hole_y_min
                         particle.velocity_y = -velocity_y - delta_v_top
-                    elif pos_y < barrier_y_min and velocity_y < 0:
-                        particle.pos_y = barrier_y_min
+                    elif pos_y < hole_y_max and velocity_y < 0:
+                        particle.pos_y = hole_y_max
                         particle.velocity_y = -velocity_y + delta_v_bottom
-                elif pos_y < barrier_y_min or pos_y > barrier_y_max:
+                elif pos_y < hole_y_max or pos_y > hole_y_min:
                     if pos_x < barrier_x:
-                        particle.pos_x = barrier_x_left
+                        particle.pos_x = barrier_x_min
                         particle.velocity_x = -particle.velocity_x - delta_v_side
                     else:
-                        particle.pos_x = barrier_x_right
+                        particle.pos_x = barrier_x_max
                         particle.velocity_x = -particle.velocity_x + delta_v_side
         return time_step
 
