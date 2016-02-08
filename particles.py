@@ -3,10 +3,100 @@
 
 from sys import argv
 from PySide import QtGui
+from PySide.QtOpenGL import QGLWidget, QGLFormat, QGL
 from particles.gui import Ui_NewExperimentWindow
 from particles.simulation import Simulator
+from OpenGL.GL import (glShadeModel, glClearColor, glClearDepth, glEnable,
+                       glMatrixMode, glDepthFunc, glHint,
+                       glViewport, glLoadIdentity, glClear, glColor3ubv,
+                       glBegin, glVertex2d, glColor3f, glLineWidth, glEnd,
+                       GL_SMOOTH, GL_DEPTH_TEST, GL_PROJECTION, GL_LEQUAL,
+                       GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST,
+                       GL_MODELVIEW, GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT,
+                       GL_TRIANGLE_FAN, GL_LINE_STRIP)
+
 import datetime
 import os.path
+from math import sin, pi
+
+
+class ParticleWidget(QGLWidget):
+    SIN_45 = sin(pi / 4)
+
+    def __init__(self, playback, parent=None):
+        super(ParticleWidget, self).__init__(parent=parent)
+        self.playback = playback
+
+    def initializeGL(self):
+        self.setFormat(QGLFormat(QGL.DoubleBuffer))
+        glShadeModel(GL_SMOOTH)
+        glClearColor(0.0, 0.0, 0.0, 0.0)
+        glClearDepth(1.0)
+
+        glEnable(GL_DEPTH_TEST)
+        glMatrixMode(GL_PROJECTION)
+        glDepthFunc(GL_LEQUAL)
+        glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
+
+    def resizeGL(self, width, height):
+        glViewport(0, 0, width, height)
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()
+
+    def clearGL(self):
+        glClearColor(0.0, 0.0, 0.0, 1.0)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+    def paintGL(self):
+        self.clearGL()
+        glLoadIdentity()
+
+        simulator = self.playback.simulator
+
+        r_sin_45 = simulator.particle_r * self.SIN_45
+        r_cos_45 = r_sin_45  # r_cos_45 is kept for readability purpose
+        particle_r = simulator.particle_r
+
+        for particle in simulator.particles:
+            if particle.id & 1:
+                glColor3ubv(0xFF0000AA)
+            else:
+                glColor3ubv(0x0000FFAA)
+
+            # TODO: use display  lists here for speed
+            glBegin(GL_TRIANGLE_FAN)
+            glVertex2d(particle.pos_x + 0, particle.pos_y + 0)
+            glVertex2d(particle.pos_x + particle_r, particle.pos_y + 0)
+            glVertex2d(particle.pos_x + r_cos_45, particle.pos_y + r_sin_45)
+            glVertex2d(particle.pos_x + 0, particle.pos_y + particle_r)
+            glVertex2d(particle.pos_x - r_cos_45, particle.pos_y + r_sin_45)
+            glVertex2d(particle.pos_x - particle_r, particle.pos_y + 0)
+            glVertex2d(particle.pos_x - r_cos_45, particle.pos_y - r_sin_45)
+            glVertex2d(particle.pos_x + 0, particle.pos_y - particle_r)
+            glVertex2d(particle.pos_x + r_cos_45, particle.pos_y - r_sin_45)
+            glVertex2d(particle.pos_x + particle_r, particle.pos_y + 0)
+        glEnd()
+
+        glColor3f(1, 1, 1)
+        glLineWidth(2)
+        glBegin(GL_LINE_STRIP)  # Paint the top of the barrier
+        glVertex2d(simulator.barrier_x_left, simulator.box_height)
+        glVertex2d(simulator.barrier_x_left, simulator.hole_y_top)
+        glVertex2d(simulator.barrier_x_right, simulator.hole_y_top)
+        glVertex2d(simulator.barrier_x_right, simulator.box_height)
+        glEnd()
+        glBegin(GL_LINE_STRIP)  # Paint the bottom of the barrier
+        glVertex2d(simulator.barrier_x_left, 0)
+        glVertex2d(simulator.barrier_x_left, simulator.hole_y_bottom)
+        glVertex2d(simulator.barrier_x_right, simulator.hole_y_bottom)
+        glVertex2d(simulator.barrier_x_right, 0)
+        glEnd()
+
+    def on_render_scene(self):
+        self.paintGL()
+        self.updateGL()
 
 
 class NewExperimentWindow(QtGui.QMainWindow):
