@@ -3,6 +3,7 @@
 from particles.core import Particle
 import random, struct
 import copy
+import os.path
 from math import sin, cos, floor, sqrt
 
 
@@ -177,7 +178,6 @@ class Simulator:
         particle_r_squared = particle_r ** 2
 
         speed_factor = 1 - self.v_loss
-
 
         x_min = self.x_min
         x_max = self.x_max
@@ -365,6 +365,14 @@ class Simulator:
         particles.extend(particles_right)
         return particles
 
+    def __len__(self):
+        """
+        Return number of particles in the current simulator
+
+        :return:
+        """
+        return len(self.particles)
+
 
 class Playback:
     def __init__(self, file_name):
@@ -391,6 +399,16 @@ class Playback:
             self.simulator.time_elapsed = time_elapsed
 
             self.pointer = file.tell()
+
+    def __len__(self):
+        """
+        Return number of snapshots in the playback
+
+        :return:
+        """
+        size = os.path.getsize(self.file_name) - Simulator.size
+        snapshot_size = struct.calcsize("d") + len(self.simulator) * Particle.STRUCT_SIZE
+        return size // snapshot_size
 
     def next_state(self):
         """
