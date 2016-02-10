@@ -52,8 +52,8 @@ class Simulator:
         * time_step - number of seconds to be elapsed between current and next step. should not be set manually.
     """
 
-    str_decode = "ddddddddddddi"
-    size = struct.calcsize(str_decode)
+    STRUCT_FORMAT = "ddddddddddddi"
+    STRUCT_SIZE = struct.calcsize(STRUCT_FORMAT)
 
     __slots__ = ['box_width', 'box_height',
                  'delta_v_top', 'delta_v_bottom', 'delta_v_side',
@@ -142,7 +142,7 @@ class Simulator:
         """
         with open(file_path, "wb") as f:
             if write_head:
-                f.write(struct.pack(self.str_decode, self.box_width, self.box_height, self.delta_v_top,
+                f.write(struct.pack(self.STRUCT_FORMAT, self.box_width, self.box_height, self.delta_v_top,
                                     self.delta_v_bottom, self.delta_v_side, self.barrier_x,
                                     self.barrier_width, self.hole_y, self.hole_height, self.v_loss,
                                     self.particle_r, self.g, len(self.particles)))
@@ -381,8 +381,8 @@ class Playback:
             (box_width, box_height, delta_v_top,
              delta_v_bottom, delta_v_side, barrier_x,
              barrier_width, hole_y, hole_height, v_loss,
-             particle_r, g, n_particles) = struct.unpack(Simulator.str_decode,
-                                                         file.read(Simulator.size))
+             particle_r, g, n_particles) = struct.unpack(Simulator.STRUCT_FORMAT,
+                                                         file.read(Simulator.STRUCT_SIZE))
             time_elapsed = struct.unpack("d", file.read(struct.calcsize("d")))
             particles = []
             for i in range(n_particles):
@@ -399,6 +399,7 @@ class Playback:
             self.simulator.time_elapsed = time_elapsed
 
             self.pointer = file.tell()
+            self.current_state = 0
 
     def __len__(self):
         """
@@ -406,19 +407,33 @@ class Playback:
 
         :return:
         """
-        size = os.path.getsize(self.file_name) - Simulator.size
+        snapshot_data_size = os.path.getsize(self.file_name) - Simulator.STRUCT_SIZE
         snapshot_size = struct.calcsize("d") + len(self.simulator) * Particle.STRUCT_SIZE
-        return size // snapshot_size
+        return snapshot_data_size // snapshot_size
+
+    def set_state(self, state):
+        """
+        Load the specific snapshot from the memory by its index.
+
+        :param state: the index of snapshot to be loaded
+        :type state: int
+        :return:
+        """
+        size_double = struct.calcsize("d")
+
+        snapshot_data_size = Simulator.STRUCT_SIZE
+        snapshot_size = size_double + len(self.simulator) * Particle.STRUCT_SIZE
+        with open(self.file_name, mode='rb') as file:
+            file.seek(snapshot_data_size + snapshot_size * state)
+            self.simulator.time_elapsed = struct.unpack("d", file.read(size_double))
+            self.simulator.particles = [Particle(file.read(Particle.STRUCT_SIZE))
+                                        for particle in self.simulator.particles]
+            self.pointer = file.tell()
+            self.current_state = state
 
     def next_state(self):
         """
         Read data from the file for the next simulation
         :return:
         """
-        size_double = struct.calcsize("d")
-        with open(self.file_name, mode='rb') as file:
-            file.seek(self.pointer)
-            self.simulator.time_elapsed = struct.unpack("d", file.read(size_double))
-            self.simulator.particles = [Particle(file.read(Particle.STRUCT_SIZE))
-                                        for particle in self.simulator.particles]
-            self.pointer = file.tell()
+        self.set_state(self.current_state + 1)
