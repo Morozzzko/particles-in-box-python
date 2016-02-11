@@ -12,7 +12,7 @@ setup(
     version="0.1",
     packages=['particles'],
     scripts=['particles.py'],
-    requires=['numpy', 'pyside'],
+    requires=['numpy', 'pyside', 'PyOpenGL', 'pyqtgraph'],
     license="MIT",
     description="A simple tool to visualize granular gas behavior in a box",
     long_description=long_description,
