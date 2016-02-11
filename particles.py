@@ -17,6 +17,7 @@ from OpenGL.GL import (glShadeModel, glClearColor, glClearDepth, glEnable,
 import datetime
 import os.path
 import struct
+import argparse
 from math import sin, pi
 
 
@@ -150,7 +151,6 @@ class DemonstrationWindow(QtGui.QMainWindow):
             self.ui.current_state.setValue(self.playback.current_state)
             self.playback.next_state()
         except (IOError, struct.error) as err:
-            print(err)
             self.stop_playback()
 
     def on_timer_executed(self):
@@ -174,7 +174,7 @@ class NewExperimentWindow(QtGui.QMainWindow):
         self.ui = Ui_NewExperimentWindow()
         self.ui.setupUi(self)
 
-        self.ui.output_file.setText(datetime.datetime.now().strftime("Particles_in_box_%Y-%m-%d_%H-%M-%S.bin"))
+        self.ui.output_file.setText(datetime.datetime.now().strftime("Particles_in_box_%Y-%m-%d_%H-%M.bin"))
 
         # Connect slots to signals
         self.ui.button_run.clicked.connect(self.run_simulation)
@@ -233,7 +233,15 @@ class NewExperimentWindow(QtGui.QMainWindow):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("input", nargs="?", type=argparse.FileType(mode="rb"), default=None)
+    args = parser.parse_args()
+
     app = QtGui.QApplication(argv)
-    main_window = NewExperimentWindow()
+
+    if args.input:
+        main_window = DemonstrationWindow(args.input.name)
+    else:
+        main_window = NewExperimentWindow()
     main_window.show()
     exit(app.exec_())
