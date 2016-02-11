@@ -11,7 +11,7 @@ setup(
     name="Particles in Box",
     version="0.1",
     packages=['particles'],
-    scripts=['particles.py'],
+    scripts=['pib.py'],
     requires=['numpy', 'pyside', 'PyOpenGL', 'pyqtgraph'],
     license="MIT",
     description="A simple tool to visualize granular gas behavior in a box",
