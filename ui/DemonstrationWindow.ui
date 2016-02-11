@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>708</width>
+    <width>969</width>
     <height>540</height>
    </rect>
   </property>
@@ -18,7 +18,7 @@
   </property>
   <property name="maximumSize">
    <size>
-    <width>708</width>
+    <width>969</width>
     <height>540</height>
    </size>
   </property>
@@ -131,7 +131,34 @@
     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
    </property>
   </widget>
+  <widget class="PlotWidget" name="plot_maxwell">
+   <property name="geometry">
+    <rect>
+     <x>708</x>
+     <y>4</y>
+     <width>255</width>
+     <height>255</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="PlotWidget" name="plot_boltzmann">
+   <property name="geometry">
+    <rect>
+     <x>708</x>
+     <y>265</y>
+     <width>255</width>
+     <height>255</height>
+    </rect>
+   </property>
+  </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PlotWidget</class>
+   <extends>QGraphicsView</extends>
+   <header location="global">pyqtgraph</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

@@ -8,6 +8,7 @@
 # WARNING! All changes made in this file will be lost!
 
 from PySide import QtCore, QtGui
+from pyqtgraph import PlotWidget
 
 class Ui_NewExperimentWindow(object):
     def setupUi(self, NewExperimentWindow):
@@ -288,9 +289,9 @@ class Ui_NewExperimentWindow(object):
 class Ui_DemonstrationWindow(object):
     def setupUi(self, DemonstrationWindow):
         DemonstrationWindow.setObjectName("DemonstrationWindow")
-        DemonstrationWindow.resize(708, 540)
+        DemonstrationWindow.resize(969, 540)
         DemonstrationWindow.setMinimumSize(QtCore.QSize(708, 540))
-        DemonstrationWindow.setMaximumSize(QtCore.QSize(708, 540))
+        DemonstrationWindow.setMaximumSize(QtCore.QSize(969, 540))
         self.current_state = QtGui.QSlider(DemonstrationWindow)
         self.current_state.setGeometry(QtCore.QRect(4, 454, 700, 20))
         self.current_state.setOrientation(QtCore.Qt.Horizontal)
@@ -320,13 +321,20 @@ class Ui_DemonstrationWindow(object):
         self.label_fps.setGeometry(QtCore.QRect(502, 490, 146, 32))
         self.label_fps.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.label_fps.setObjectName("label_fps")
+        self.plot_maxwell = PlotWidget(DemonstrationWindow)
+        self.plot_maxwell.setGeometry(QtCore.QRect(708, 4, 255, 255))
+        self.plot_maxwell.setObjectName("plot_maxwell")
+        self.plot_boltzmann = PlotWidget(DemonstrationWindow)
+        self.plot_boltzmann.setGeometry(QtCore.QRect(708, 265, 255, 255))
+        self.plot_boltzmann.setObjectName("plot_boltzmann")
 
         self.retranslateUi(DemonstrationWindow)
         QtCore.QMetaObject.connectSlotsByName(DemonstrationWindow)
 
     def retranslateUi(self, DemonstrationWindow):
         DemonstrationWindow.setWindowTitle(QtGui.QApplication.translate("DemonstrationWindow", "Particles in Box", None, QtGui.QApplication.UnicodeUTF8))
-        self.button_play.setText(QtGui.QApplication.translate("DemonstrationWindow", "▷", None, QtGui.QApplication.UnicodeUTF8))
+        self.button_play.setText(QtGui.QApplication.translate("DemonstrationWindow", "▯▯", None, QtGui.QApplication.UnicodeUTF8))
         self.button_backward.setText(QtGui.QApplication.translate("DemonstrationWindow", "⧏", None, QtGui.QApplication.UnicodeUTF8))
         self.button_forward.setText(QtGui.QApplication.translate("DemonstrationWindow", "⧐", None, QtGui.QApplication.UnicodeUTF8))
         self.label_fps.setText(QtGui.QApplication.translate("DemonstrationWindow", "FPS", None, QtGui.QApplication.UnicodeUTF8))
+
