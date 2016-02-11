@@ -2,21 +2,21 @@
 # -*- coding: utf-8 -*-
 
 from sys import argv
-from PySide import QtGui
+from PySide import QtGui, QtCore
 from PySide.QtOpenGL import QGLWidget, QGLFormat, QGL
-from particles.gui import Ui_NewExperimentWindow
-from particles.simulation import Simulator
+from particles.gui import Ui_NewExperimentWindow, Ui_DemonstrationWindow
+from particles.simulation import Simulator, Playback
 from OpenGL.GL import (glShadeModel, glClearColor, glClearDepth, glEnable,
-                       glMatrixMode, glDepthFunc, glHint,
-                       glViewport, glLoadIdentity, glClear, glColor3ubv,
+                       glMatrixMode, glDepthFunc, glHint, glOrtho,
+                       glViewport, glLoadIdentity, glClear, glColor3ub,
                        glBegin, glVertex2d, glColor3f, glLineWidth, glEnd,
                        GL_SMOOTH, GL_DEPTH_TEST, GL_PROJECTION, GL_LEQUAL,
                        GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST,
                        GL_MODELVIEW, GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT,
                        GL_TRIANGLE_FAN, GL_LINE_STRIP)
-
 import datetime
 import os.path
+import struct
 from math import sin, pi
 
 
@@ -27,8 +27,11 @@ class ParticleWidget(QGLWidget):
         super(ParticleWidget, self).__init__(parent=parent)
         self.playback = playback
 
+        self.initializeGL()
+
+        self.paintGL()
+
     def initializeGL(self):
-        self.setFormat(QGLFormat(QGL.DoubleBuffer))
         glShadeModel(GL_SMOOTH)
         glClearColor(0.0, 0.0, 0.0, 0.0)
         glClearDepth(1.0)
@@ -40,8 +43,11 @@ class ParticleWidget(QGLWidget):
 
     def resizeGL(self, width, height):
         glViewport(0, 0, width, height)
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
+
+        glOrtho(0.0, self.playback.simulator.box_width,
+                0.0, self.playback.simulator.box_height,
+                0.0, 1.0)
+
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
 
@@ -61,9 +67,9 @@ class ParticleWidget(QGLWidget):
 
         for particle in simulator.particles:
             if particle.id & 1:
-                glColor3ubv(0xFF0000AA)
+                glColor3ub(255, 0, 0)
             else:
-                glColor3ubv(0x0000FFAA)
+                glColor3ub(0, 255, 0)
 
             # TODO: use display  lists here for speed
             glBegin(GL_TRIANGLE_FAN)
@@ -77,7 +83,7 @@ class ParticleWidget(QGLWidget):
             glVertex2d(particle.pos_x + 0, particle.pos_y - particle_r)
             glVertex2d(particle.pos_x + r_cos_45, particle.pos_y - r_sin_45)
             glVertex2d(particle.pos_x + particle_r, particle.pos_y + 0)
-        glEnd()
+            glEnd()
 
         glColor3f(1, 1, 1)
         glLineWidth(2)
@@ -97,6 +103,67 @@ class ParticleWidget(QGLWidget):
     def on_render_scene(self):
         self.paintGL()
         self.updateGL()
+
+
+class DemonstrationWindow(QtGui.QMainWindow):
+    def __init__(self, file_name, parent=None):
+        super(DemonstrationWindow, self).__init__(parent=parent)
+
+        self.playback = Playback(file_name)
+
+        self.ui = Ui_DemonstrationWindow()
+
+        self.ui.setupUi(self)
+
+        self.ui.canvas = ParticleWidget(self.playback, parent=self.ui.frame_player)
+        self.ui.canvas.setFixedSize(self.ui.frame_player.size())
+
+        self.ui.current_state.setMaximum(len(self.playback))
+
+        self.ui.button_play.clicked.connect(self.on_button_play_pressed)
+
+        self.stopped = False
+
+        self.timer = QtCore.QTimer(parent=self)
+        self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.on_timer_executed)
+
+        self.start_playback()
+
+    def stop_playback(self):
+        self.stopped = True
+        self.ui.button_play.setText("▷")
+        self.timer.stop()
+
+    def launch_timer(self):
+        fps = self.ui.fps.value()
+        time_step = int(1000 / fps)
+        self.timer.start(time_step)
+
+    def start_playback(self):
+        self.stopped = False
+        self.launch_timer()
+        self.ui.button_play.setText("▯▯")
+
+    def next_state(self):
+        try:
+            self.ui.canvas.on_render_scene()
+            self.ui.current_state.setValue(self.playback.current_state)
+            self.playback.next_state()
+        except (IOError, struct.error) as err:
+            print(err)
+            self.stop_playback()
+
+    def on_timer_executed(self):
+        if self.stopped or self.sender() != self.timer:
+            return
+        self.next_state()
+        self.launch_timer()
+
+    def on_button_play_pressed(self):
+        if self.stopped:
+            self.start_playback()
+        else:
+            self.stop_playback()
 
 
 class NewExperimentWindow(QtGui.QMainWindow):
@@ -154,9 +221,9 @@ class NewExperimentWindow(QtGui.QMainWindow):
             dialog.show()
             dialog.setValue(0)
             for state_num, _ in enumerate(simulator.simulate_to_file(file_path=file,
-                                                        num_seconds=simulation_time * 60,
-                                                        num_snapshots=fps,
-                                                        write_head=True)):
+                                                                     num_seconds=simulation_time * 60,
+                                                                     num_snapshots=fps,
+                                                                     write_head=True)):
                 dialog.setValue(state_num)
 
         except IOError as e:
