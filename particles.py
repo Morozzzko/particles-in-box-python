@@ -126,7 +126,14 @@ class DemonstrationWindow(QtGui.QMainWindow):
         self.stopped = False
 
         self.timer = QtCore.QTimer(parent=self)
-        self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.on_timer_executed)
+        self.timer.timeout.connect(self.on_timer_executed)
+
+        self.ui.current_state.sliderPressed.connect(self.on_scrollbar_pressed)
+        self.ui.current_state.sliderReleased.connect(self.on_scrollbar_released)
+        self.ui.current_state.valueChanged.connect(self.on_scrollbar_value_changed)
+
+        self.ui.button_backward.clicked.connect(self.previous_state)
+        self.ui.button_forward.clicked.connect(self.next_state)
 
         self.start_playback()
 
@@ -145,12 +152,16 @@ class DemonstrationWindow(QtGui.QMainWindow):
         self.launch_timer()
         self.ui.button_play.setText("▯▯")
 
+    def previous_state(self):
+        try:
+            self.ui.current_state.setValue(self.ui.current_state.value() - 1)
+        except (IOError, struct.error, ValueError) as err:
+            self.stop_playback()
+
     def next_state(self):
         try:
-            self.ui.canvas.on_render_scene()
-            self.ui.current_state.setValue(self.playback.current_state)
-            self.playback.next_state()
-        except (IOError, struct.error) as err:
+            self.ui.current_state.setValue(self.ui.current_state.value() + 1)
+        except (IOError, struct.error, ValueError) as err:
             self.stop_playback()
 
     def on_timer_executed(self):
@@ -164,6 +175,20 @@ class DemonstrationWindow(QtGui.QMainWindow):
             self.start_playback()
         else:
             self.stop_playback()
+
+    def on_scrollbar_pressed(self):
+        self.timer.stop()
+
+    def on_scrollbar_released(self):
+        if not self.stopped:
+            self.launch_timer()
+
+    def on_scrollbar_value_changed(self, new_state):
+        try:
+            self.playback.set_state(new_state)
+            self.ui.canvas.on_render_scene()
+        except (IOError, ValueError):
+            pass
 
 
 class NewExperimentWindow(QtGui.QMainWindow):

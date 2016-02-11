@@ -420,6 +420,8 @@ class Playback:
         :return:
         """
         max_state = len(self) - 1
+        if new_state < 0:
+            raise ValueError("new_state can not be negative")
         if max_state < new_state:
             raise ValueError("max state is {max}, {new_state} given".format(
                 max=max_state,
