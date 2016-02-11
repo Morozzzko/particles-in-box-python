@@ -168,8 +168,8 @@ class DemonstrationWindow(QtGui.QMainWindow):
 
     def update_maxwell_plot(self, data):
         self.ui.plot_maxwell.clear()
-        data_sorted = sorted(data, key=lambda x: x.speed(), reverse=True)
-        y, x = np.histogram(tuple(x.speed() for x in data_sorted), bins=20)
+        data_sorted = sorted((x.speed() for x in data), reverse=True)
+        y, x = np.histogram(data_sorted, bins=20)
         self.ui.plot_maxwell.plot(x, y, stepMode=True, fillLevel=0, brush=(126, 5, 80, 150))
 
     def update_plot(self, data):
