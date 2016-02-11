@@ -162,15 +162,15 @@ class DemonstrationWindow(QtGui.QMainWindow):
 
     def update_boltzmann_plot(self, data):
         self.ui.plot_boltzmann.clear()
-        data_sorted = sorted((x.pos_y for x in data),reverse=True)
+        data_sorted = sorted((x.pos_y for x in data), reverse=True)
         y, x = np.histogram(data_sorted, bins=20)
-        self.ui.plot_boltzmann.plot(x, y, stepMode=True, fillLevel=0, brush=(126,5,80,150))
+        self.ui.plot_boltzmann.plot(x, y, stepMode=True, fillLevel=0, brush=(126, 5, 80, 150))
 
     def update_maxwell_plot(self, data):
         self.ui.plot_maxwell.clear()
         data_sorted = sorted(data, key=lambda x: x.speed(), reverse=True)
         y, x = np.histogram(tuple(x.speed() for x in data_sorted), bins=20)
-        self.ui.plot_maxwell.plot(x, y, stepMode=True, fillLevel=0, brush=(126,5,80,150))
+        self.ui.plot_maxwell.plot(x, y, stepMode=True, fillLevel=0, brush=(126, 5, 80, 150))
 
     def update_plot(self, data):
         """
@@ -261,11 +261,11 @@ class NewExperimentWindow(QtGui.QMainWindow):
         v_loss = self.ui.v_loss.value()
         particle_r = self.ui.particle_r.value()
         g = self.ui.g.value()
-        n_left = int(self.ui.n_left.value())
-        n_right = int(self.ui.n_right.value())
+        n_left = self.ui.n_left.value()
+        n_right = self.ui.n_right.value()
         v_init = self.ui.v_init.value()
-        fps = int(self.ui.fps.value())
-        simulation_time = int(self.ui.simulation_time.value())
+        fps = self.ui.fps.value()
+        simulation_time = self.ui.simulation_time.value()
         file = self.ui.output_file.text()
 
         try:
