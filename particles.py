@@ -258,18 +258,15 @@ class NewExperimentWindow(QtGui.QMainWindow):
 
 
 if __name__ == "__main__":
-    try:
-        parser = argparse.ArgumentParser()
-        parser.add_argument("input", nargs="?", type=argparse.FileType(mode="rb"), default=None)
-        args = parser.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("input", nargs="?", type=argparse.FileType(mode="rb"), default=None)
+    args = parser.parse_args()
 
-        app = QtGui.QApplication(argv)
+    app = QtGui.QApplication(argv)
 
-        if args.input:
-            main_window = DemonstrationWindow(args.input.name)
-        else:
-            main_window = NewExperimentWindow()
-        main_window.show()
-        exit(app.exec_())
-    except KeyboardInterrupt:
-        exit(1)
+    if args.input:
+        main_window = DemonstrationWindow(args.input.name)
+    else:
+        main_window = NewExperimentWindow()
+    main_window.show()
+    exit(app.exec_())
