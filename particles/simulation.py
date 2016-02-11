@@ -104,6 +104,14 @@ class Simulator:
         else:
             self.particles = self.distribute_particles(n_left=n_left, n_right=n_right, v_init=v_init)
 
+    def state(self):
+        """
+        Return the copy of all current particle data
+
+        :return:
+        """
+        return copy.deepcopy(self.particles)
+
     def simulate(self, num_seconds, num_snapshots):
         """
         Simulate particle movement for the provided number of seconds, yield snapshots with the provided frequency
