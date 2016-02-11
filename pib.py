@@ -35,7 +35,7 @@ class ParticleWidget(QGLWidget):
 
     def initializeGL(self):
         glShadeModel(GL_SMOOTH)
-        glClearColor(0.0, 0.0, 0.0, 0.0)
+        glClearColor(0.05, 0.05, 0.05, 1.0)
         glClearDepth(1.0)
 
         glEnable(GL_DEPTH_TEST)
@@ -54,7 +54,7 @@ class ParticleWidget(QGLWidget):
         glLoadIdentity()
 
     def clearGL(self):
-        glClearColor(0.0, 0.0, 0.0, 1.0)
+        glClearColor(0.05, 0.05, 0.05, 1.0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
     def paintGL(self):
@@ -69,11 +69,10 @@ class ParticleWidget(QGLWidget):
 
         for particle in simulator.particles:
             if particle.id & 1:
-                glColor3ub(255, 0, 0)
+                glColor3ub(148, 0, 211)
             else:
                 glColor3ub(0, 255, 0)
 
-            # TODO: use display  lists here for speed
             glBegin(GL_TRIANGLE_FAN)
             glVertex2d(particle.pos_x + 0, particle.pos_y + 0)
             glVertex2d(particle.pos_x + particle_r, particle.pos_y + 0)
