@@ -174,7 +174,7 @@ class NewExperimentWindow(QtGui.QMainWindow):
         self.ui = Ui_NewExperimentWindow()
         self.ui.setupUi(self)
 
-        self.ui.output_file.setText(datetime.datetime.now().strftime("Particles_in_box_%Y-%m-%d_%H-%M.bin"))
+        self.ui.output_file.setText(datetime.datetime.now().strftime("particles_in_box_%Y-%m-%d-%H-%M.bin"))
 
         # Connect slots to signals
         self.ui.button_run.clicked.connect(self.run_simulation)
