@@ -411,25 +411,32 @@ class Playback:
         snapshot_size = struct.calcsize("d") + len(self.simulator) * Particle.STRUCT_SIZE
         return snapshot_data_size // snapshot_size
 
-    def set_state(self, state):
+    def set_state(self, new_state):
         """
         Load the specific snapshot from the memory by its index.
 
-        :param state: the index of snapshot to be loaded
-        :type state: int
+        :param new_state: the index of snapshot to be loaded
+        :type new_state: int
         :return:
         """
+        max_state = len(self) - 1
+        if max_state < new_state:
+            raise ValueError("max state is {max}, {new_state} given".format(
+                max=max_state,
+                new_state=new_state
+            ))
+
         size_double = struct.calcsize("d")
 
         snapshot_data_size = Simulator.STRUCT_SIZE
         snapshot_size = size_double + len(self.simulator) * Particle.STRUCT_SIZE
         with open(self.file_name, mode='rb') as file:
-            file.seek(snapshot_data_size + snapshot_size * state)
+            file.seek(snapshot_data_size + snapshot_size * new_state)
             self.simulator.time_elapsed = struct.unpack("d", file.read(size_double))
             self.simulator.particles = [Particle(file.read(Particle.STRUCT_SIZE))
                                         for particle in self.simulator.particles]
             self.pointer = file.tell()
-            self.current_state = state
+            self.current_state = new_state
 
     def next_state(self):
         """
