@@ -19,6 +19,7 @@ import os.path
 import struct
 import argparse
 import numpy as np
+import signal
 from math import sin, pi
 
 
@@ -362,7 +363,13 @@ class NewExperimentWindow(QtGui.QMainWindow):
             QtGui.QMessageBox.critical(self, "Error!", str(e))
 
 
+def sigint_handler(*args):
+    QtGui.QApplication.quit()
+
+
 if __name__ == "__main__":
+    signal.signal(signal.SIGINT, sigint_handler)
+
     parser = argparse.ArgumentParser()
     parser.add_argument("input", nargs="?", type=argparse.FileType(mode="rb"), default=None)
     args = parser.parse_args()
@@ -374,4 +381,11 @@ if __name__ == "__main__":
     else:
         main_window = NewExperimentWindow()
     main_window.show()
+
+    # Timer is made in order to let program handle SIGINT
+
+    timer = QtCore.QTimer()
+    timer.start(500)
+    timer.timeout.connect(lambda: None)
+
     exit(app.exec_())
