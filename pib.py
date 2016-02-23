@@ -235,6 +235,13 @@ class NewExperimentWindow(QtGui.QMainWindow):
         self.ui = Ui_NewExperimentWindow()
         self.ui.setupUi(self)
 
+        self.ui.label_clear_file_name.setVisible(False)
+        self.label_input_text = self.ui.label_input_file_name.text()
+        self.input_file = None
+
+        self.ui.label_input_file_name.mouseReleaseEvent = self.set_input_file_path_on_click
+        self.ui.label_clear_file_name.mouseReleaseEvent = self.clear_input_file_path_on_click
+
         self.ui.output_file.setText(datetime.datetime.now().strftime("particles_in_box_%Y-%m-%d-%H-%M.bin"))
 
         # Connect slots to signals
@@ -243,12 +250,74 @@ class NewExperimentWindow(QtGui.QMainWindow):
         # File selection dialog
         self.ui.output_file_button.clicked.connect(self.set_output_file_path)
 
+    def set_input_file(self, file_path):
+        self.input_file = file_path
+        if file_path:
+            self.ui.label_clear_file_name.setVisible(True)
+            self.ui.label_input_file_name.setText(
+                "Opening file: {file_path}".format(file_path=os.path.basename(file_path))
+            )
+            self.ui.box_width.setEnabled(False)
+            self.ui.box_height.setEnabled(False)
+            self.ui.delta_v_top.setEnabled(False)
+            self.ui.delta_v_bottom.setEnabled(False)
+            self.ui.delta_v_side.setEnabled(False)
+            self.ui.barrier_x.setEnabled(False)
+            self.ui.barrier_width.setEnabled(False)
+            self.ui.hole_y.setEnabled(False)
+            self.ui.hole_height.setEnabled(False)
+            self.ui.v_loss.setEnabled(False)
+            self.ui.particle_r.setEnabled(False)
+            self.ui.g.setEnabled(False)
+            self.ui.n_left.setEnabled(False)
+            self.ui.n_right.setEnabled(False)
+            self.ui.v_init.setEnabled(False)
+            self.ui.fps.setEnabled(False)
+            self.ui.simulation_time.setEnabled(False)
+            self.ui.output_file.setEnabled(False)
+            self.ui.output_file_button.setEnabled(False)
+        else:
+            self.ui.label_input_file_name.setText(self.label_input_text)
+            self.ui.label_clear_file_name.setVisible(False)
+            self.ui.box_width.setEnabled(True)
+            self.ui.box_height.setEnabled(True)
+            self.ui.delta_v_top.setEnabled(True)
+            self.ui.delta_v_bottom.setEnabled(True)
+            self.ui.delta_v_side.setEnabled(True)
+            self.ui.barrier_x.setEnabled(True)
+            self.ui.barrier_width.setEnabled(True)
+            self.ui.hole_y.setEnabled(True)
+            self.ui.hole_height.setEnabled(True)
+            self.ui.v_loss.setEnabled(True)
+            self.ui.particle_r.setEnabled(True)
+            self.ui.g.setEnabled(True)
+            self.ui.n_left.setEnabled(True)
+            self.ui.n_right.setEnabled(True)
+            self.ui.v_init.setEnabled(True)
+            self.ui.fps.setEnabled(True)
+            self.ui.simulation_time.setEnabled(True)
+            self.ui.output_file.setEnabled(True)
+            self.ui.output_file_button.setEnabled(True)
+
+    def set_input_file_path_on_click(self, ev):
+        file_path, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open:', filter="*.bin")
+        self.set_input_file(file_path or None)
+
+    def clear_input_file_path_on_click(self, ev):
+        self.set_input_file(None)
+
+
     def set_output_file_path(self):
         file_path, _ = QtGui.QFileDialog.getSaveFileName(self, 'Save as:', filter="*.bin")
         self.ui.output_file.setText(file_path)
 
     def run_simulation(self):
-        # TODO: actually do simulation
+        if self.input_file:
+            demo_window = DemonstrationWindow(self.input_file, parent=self)
+            demo_window.show()
+            self.hide()
+            return
+
         box_width = self.ui.box_width.value()
         box_height = self.ui.box_height.value()
         delta_v_top = self.ui.delta_v_top.value()

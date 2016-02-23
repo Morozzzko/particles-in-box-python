@@ -10,15 +10,18 @@
 from PySide import QtCore, QtGui
 from pyqtgraph import PlotWidget
 
+
 class Ui_NewExperimentWindow(object):
     def setupUi(self, NewExperimentWindow):
         NewExperimentWindow.setObjectName("NewExperimentWindow")
-        NewExperimentWindow.resize(443, 448)
+        NewExperimentWindow.resize(651, 453)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(NewExperimentWindow.sizePolicy().hasHeightForWidth())
         NewExperimentWindow.setSizePolicy(sizePolicy)
+        NewExperimentWindow.setMinimumSize(QtCore.QSize(651, 453))
+        NewExperimentWindow.setMaximumSize(QtCore.QSize(651, 453))
         self.group_particle_settings = QtGui.QGroupBox(NewExperimentWindow)
         self.group_particle_settings.setGeometry(QtCore.QRect(10, 0, 201, 201))
         self.group_particle_settings.setObjectName("group_particle_settings")
@@ -84,7 +87,7 @@ class Ui_NewExperimentWindow(object):
         self.n_right.setObjectName("n_right")
         self.form_particle_settings.setWidget(1, QtGui.QFormLayout.FieldRole, self.n_right)
         self.group_geometry = QtGui.QGroupBox(NewExperimentWindow)
-        self.group_geometry.setGeometry(QtCore.QRect(10, 200, 201, 231))
+        self.group_geometry.setGeometry(QtCore.QRect(440, 0, 201, 231))
         self.group_geometry.setObjectName("group_geometry")
         self.formLayoutWidget_3 = QtGui.QWidget(self.group_geometry)
         self.formLayoutWidget_3.setGeometry(QtCore.QRect(0, 20, 200, 209))
@@ -193,7 +196,7 @@ class Ui_NewExperimentWindow(object):
         self.delta_v_side.setObjectName("delta_v_side")
         self.form_collision_settings.setWidget(2, QtGui.QFormLayout.FieldRole, self.delta_v_side)
         self.button_run = QtGui.QPushButton(NewExperimentWindow)
-        self.button_run.setGeometry(QtCore.QRect(330, 410, 101, 28))
+        self.button_run.setGeometry(QtCore.QRect(540, 420, 101, 28))
         self.button_run.setAutoDefault(True)
         self.button_run.setDefault(True)
         self.button_run.setFlat(False)
@@ -244,15 +247,28 @@ class Ui_NewExperimentWindow(object):
         self.simulation_time.setObjectName("simulation_time")
         self.form_misc_settings.setWidget(1, QtGui.QFormLayout.FieldRole, self.simulation_time)
         self.group_output_file = QtGui.QGroupBox(NewExperimentWindow)
-        self.group_output_file.setGeometry(QtCore.QRect(220, 260, 211, 51))
+        self.group_output_file.setGeometry(QtCore.QRect(10, 200, 201, 61))
         self.group_output_file.setObjectName("group_output_file")
         self.output_file = QtGui.QLineEdit(self.group_output_file)
         self.output_file.setEnabled(True)
-        self.output_file.setGeometry(QtCore.QRect(0, 20, 181, 30))
+        self.output_file.setGeometry(QtCore.QRect(5, 25, 161, 30))
         self.output_file.setObjectName("output_file")
         self.output_file_button = QtGui.QToolButton(self.group_output_file)
-        self.output_file_button.setGeometry(QtCore.QRect(176, 20, 30, 30))
+        self.output_file_button.setGeometry(QtCore.QRect(166, 25, 30, 30))
         self.output_file_button.setObjectName("output_file_button")
+        self.group_input_file = QtGui.QGroupBox(NewExperimentWindow)
+        self.group_input_file.setGeometry(QtCore.QRect(10, 270, 631, 131))
+        self.group_input_file.setObjectName("group_input_file")
+        self.label_input_file_name = QtGui.QLabel(self.group_input_file)
+        self.label_input_file_name.setGeometry(QtCore.QRect(13, 27, 601, 101))
+        self.label_input_file_name.setAcceptDrops(True)
+        self.label_input_file_name.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_input_file_name.setWordWrap(True)
+        self.label_input_file_name.setObjectName("label_input_file_name")
+        self.label_clear_file_name = QtGui.QLabel(self.group_input_file)
+        self.label_clear_file_name.setGeometry(QtCore.QRect(563, 20, 50, 111))
+        self.label_clear_file_name.setAlignment(QtCore.Qt.AlignCenter)
+        self.label_clear_file_name.setObjectName("label_clear_file_name")
 
         self.retranslateUi(NewExperimentWindow)
         QtCore.QMetaObject.connectSlotsByName(NewExperimentWindow)
@@ -283,7 +299,10 @@ class Ui_NewExperimentWindow(object):
         self.label_fps.setText(QtGui.QApplication.translate("NewExperimentWindow", "Frames/second", None, QtGui.QApplication.UnicodeUTF8))
         self.group_output_file.setTitle(QtGui.QApplication.translate("NewExperimentWindow", "Output file", None, QtGui.QApplication.UnicodeUTF8))
         self.output_file_button.setText(QtGui.QApplication.translate("NewExperimentWindow", "...", None, QtGui.QApplication.UnicodeUTF8))
-
+        self.group_input_file.setTitle(QtGui.QApplication.translate("NewExperimentWindow", "Or open an existing file", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_input_file_name.setText(QtGui.QApplication.translate("NewExperimentWindow", "Drag and Drop file here\n"
+"or click to browse", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_clear_file_name.setText(QtGui.QApplication.translate("NewExperimentWindow", "X", None, QtGui.QApplication.UnicodeUTF8))
 
 
 class Ui_DemonstrationWindow(object):
