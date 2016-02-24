@@ -3,20 +3,20 @@
 
 from sys import argv
 from PySide import QtGui, QtCore
-from PySide.QtOpenGL import QGLWidget, QGLFormat, QGL
+from PySide.QtOpenGL import QGLWidget
 from particles.gui import Ui_NewExperimentWindow, Ui_DemonstrationWindow
 from particles.simulation import Simulator, Playback
 from OpenGL.GL import (glShadeModel, glClearColor, glClearDepth, glEnable,
                        glMatrixMode, glDepthFunc, glHint, glOrtho,
-                       glViewport, glLoadIdentity, glClear, glColor3ub,
-                       glBegin, glVertex2d, glColor3f, glLineWidth, glEnd,
+                       glViewport, glLoadIdentity, glClear,
+                       glColor3f, glLineWidth,
                        GL_SMOOTH, GL_DEPTH_TEST, GL_PROJECTION, GL_LEQUAL,
                        GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST,
                        GL_MODELVIEW, GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT,
                        GL_TRIANGLE_FAN, GL_LINE_STRIP, GL_VERTEX_ARRAY,
                        glEnableClientState, GL_DOUBLE, glVertexPointer,
                        glDrawArrays, glColorPointer, GL_UNSIGNED_BYTE,
-                       GL_COLOR_ARRAY)
+                       GL_COLOR_ARRAY, glDisableClientState)
 import OpenGL.arrays.vbo as glvbo
 import datetime
 import os.path
@@ -61,8 +61,19 @@ class ParticleWidget(QGLWidget):
         glMatrixMode(GL_PROJECTION)
         glDepthFunc(GL_LEQUAL)
         glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
-        self.vbo = glvbo.VBO(self.particle_xy)
+        self.vbo_xy = glvbo.VBO(self.particle_xy)
         self.vbo_color = glvbo.VBO(self.particle_color)
+        simulator = self.playback.simulator
+        self.vbo_barrier = glvbo.VBO(np.array([
+            simulator.barrier_x_left, simulator.box_height,
+            simulator.barrier_x_left, simulator.hole_y_top,
+            simulator.barrier_x_right, simulator.hole_y_top,
+            simulator.barrier_x_right, simulator.box_height,
+            simulator.barrier_x_left, 0,
+            simulator.barrier_x_left, simulator.hole_y_bottom,
+            simulator.barrier_x_right, simulator.hole_y_bottom,
+            simulator.barrier_x_right, 0,
+        ]))
 
     def update_particle_data(self):
         self.particle_xy = np.array([(p.pos_x + x, p.pos_y + y)
@@ -105,30 +116,24 @@ class ParticleWidget(QGLWidget):
 
         glEnableClientState(GL_VERTEX_ARRAY)
 
-        self.vbo.set_array(self.particle_xy)
-        self.vbo.bind()
+        self.vbo_xy.set_array(self.particle_xy)
+        self.vbo_xy.bind()
 
-        glVertexPointer(2, GL_DOUBLE, 0, self.vbo)
+        glVertexPointer(2, GL_DOUBLE, 0, self.vbo_xy)
 
         particle_size = self.xy_size
 
         for i in range(len(simulator)):
             glDrawArrays(GL_TRIANGLE_FAN, i * particle_size, particle_size)
 
+        glDisableClientState(GL_COLOR_ARRAY)
+
         glColor3f(1, 1, 1)
         glLineWidth(2)
-        glBegin(GL_LINE_STRIP)  # Paint the top of the barrier
-        glVertex2d(simulator.barrier_x_left, simulator.box_height)
-        glVertex2d(simulator.barrier_x_left, simulator.hole_y_top)
-        glVertex2d(simulator.barrier_x_right, simulator.hole_y_top)
-        glVertex2d(simulator.barrier_x_right, simulator.box_height)
-        glEnd()
-        glBegin(GL_LINE_STRIP)  # Paint the bottom of the barrier
-        glVertex2d(simulator.barrier_x_left, 0)
-        glVertex2d(simulator.barrier_x_left, simulator.hole_y_bottom)
-        glVertex2d(simulator.barrier_x_right, simulator.hole_y_bottom)
-        glVertex2d(simulator.barrier_x_right, 0)
-        glEnd()
+        self.vbo_barrier.bind()
+        glVertexPointer(2, GL_DOUBLE, 0, self.vbo_barrier)
+        glDrawArrays(GL_LINE_STRIP, 0, 4)
+        glDrawArrays(GL_LINE_STRIP, 4, 4)
 
     def on_render_scene(self):
         self.paintGL()
