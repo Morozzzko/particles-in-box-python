@@ -391,7 +391,7 @@ class Playback:
          barrier_width, hole_y, hole_height, v_loss,
          particle_r, g, n_particles) = struct.unpack(Simulator.STRUCT_FORMAT,
                                                      self.file.read(Simulator.STRUCT_SIZE))
-        time_elapsed = struct.unpack("d", self.file.read(struct.calcsize("d")))
+        (time_elapsed, ) = struct.unpack("d", self.file.read(struct.calcsize("d")))
         particles = []
         for i in range(n_particles):
             data = self.file.read(Particle.STRUCT_SIZE)
@@ -450,7 +450,7 @@ class Playback:
             ))
 
         self.file.seek(self.snapshot_data_size + self.snapshot_size * new_state)
-        self.simulator.time_elapsed = struct.unpack("d", self.file.read(self.size_double))
+        (self.simulator.time_elapsed, ) = struct.unpack("d", self.file.read(self.size_double))
         self.simulator.particles = [Particle(self.file.read(Particle.STRUCT_SIZE))
                                         for particle in self.simulator.particles]
         self.pointer = self.file.tell()
