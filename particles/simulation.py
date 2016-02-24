@@ -385,29 +385,42 @@ class Simulator:
 class Playback:
     def __init__(self, file_name):
         self.file_name = file_name
-        with open(file_name, mode='br') as file:
-            (box_width, box_height, delta_v_top,
-             delta_v_bottom, delta_v_side, barrier_x,
-             barrier_width, hole_y, hole_height, v_loss,
-             particle_r, g, n_particles) = struct.unpack(Simulator.STRUCT_FORMAT,
-                                                         file.read(Simulator.STRUCT_SIZE))
-            time_elapsed = struct.unpack("d", file.read(struct.calcsize("d")))
-            particles = []
-            for i in range(n_particles):
-                data = file.read(Particle.STRUCT_SIZE)
-                particles.append(Particle(data))
-            self.simulator = Simulator(box_width=box_width, box_height=box_height, delta_v_top=delta_v_top,
-                                       delta_v_bottom=delta_v_bottom, delta_v_side=delta_v_side,
-                                       barrier_x=barrier_x,
-                                       barrier_width=barrier_width, hole_y=hole_y, hole_height=hole_height,
-                                       v_loss=v_loss,
-                                       particle_r=particle_r,
-                                       g=g,
-                                       particles=particles)
-            self.simulator.time_elapsed = time_elapsed
+        self.file = open(file_name, mode='br')
+        (box_width, box_height, delta_v_top,
+         delta_v_bottom, delta_v_side, barrier_x,
+         barrier_width, hole_y, hole_height, v_loss,
+         particle_r, g, n_particles) = struct.unpack(Simulator.STRUCT_FORMAT,
+                                                     self.file.read(Simulator.STRUCT_SIZE))
+        time_elapsed = struct.unpack("d", self.file.read(struct.calcsize("d")))
+        particles = []
+        for i in range(n_particles):
+            data = self.file.read(Particle.STRUCT_SIZE)
+            particles.append(Particle(data))
+        self.simulator = Simulator(box_width=box_width, box_height=box_height,
+                                   delta_v_top=delta_v_top,
+                                   delta_v_bottom=delta_v_bottom,
+                                   delta_v_side=delta_v_side,
+                                   barrier_x=barrier_x,
+                                   barrier_width=barrier_width, hole_y=hole_y,
+                                   hole_height=hole_height,
+                                   v_loss=v_loss,
+                                   particle_r=particle_r,
+                                   g=g,
+                                   particles=particles)
+        self.simulator.time_elapsed = time_elapsed
 
-            self.pointer = file.tell()
-            self.current_state = 0
+        self.pointer = self.file.tell()
+        self.current_state = 0
+
+        self.size_double = struct.calcsize("d")
+
+        self.snapshot_data_size = Simulator.STRUCT_SIZE
+        self.snapshot_size = (self.size_double +
+                             len(self.simulator) * Particle.STRUCT_SIZE)
+
+    def __del__(self):
+        self.file.close()
+
 
     def __len__(self):
         """
@@ -436,17 +449,12 @@ class Playback:
                 new_state=new_state
             ))
 
-        size_double = struct.calcsize("d")
-
-        snapshot_data_size = Simulator.STRUCT_SIZE
-        snapshot_size = size_double + len(self.simulator) * Particle.STRUCT_SIZE
-        with open(self.file_name, mode='rb') as file:
-            file.seek(snapshot_data_size + snapshot_size * new_state)
-            self.simulator.time_elapsed = struct.unpack("d", file.read(size_double))
-            self.simulator.particles = [Particle(file.read(Particle.STRUCT_SIZE))
+        self.file.seek(self.snapshot_data_size + self.snapshot_size * new_state)
+        self.simulator.time_elapsed = struct.unpack("d", self.file.read(self.size_double))
+        self.simulator.particles = [Particle(self.file.read(Particle.STRUCT_SIZE))
                                         for particle in self.simulator.particles]
-            self.pointer = file.tell()
-            self.current_state = new_state
+        self.pointer = self.file.tell()
+        self.current_state = new_state
 
     def next_state(self):
         """
