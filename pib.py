@@ -150,6 +150,8 @@ class DemonstrationWindow(QtGui.QMainWindow):
 
         self.ui.setupUi(self)
 
+        self.label_time_original = self.ui.label_time.text()
+
         self.ui.canvas = ParticleWidget(self.playback, parent=self.ui.frame_player)
         self.ui.canvas.setFixedSize(self.ui.frame_player.size())
 
@@ -256,6 +258,11 @@ class DemonstrationWindow(QtGui.QMainWindow):
         try:
             self.playback.set_state(new_state)
             self.ui.canvas.on_render_scene()
+            self.ui.label_time.setText(
+                self.label_time_original.format(
+                    time=self.playback.simulator.time_elapsed
+                )
+            )
             self.update_plot(self.playback.simulator.state())
         except (IOError, ValueError):
             pass

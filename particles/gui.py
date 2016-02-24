@@ -346,6 +346,9 @@ class Ui_DemonstrationWindow(object):
         self.plot_boltzmann = PlotWidget(DemonstrationWindow)
         self.plot_boltzmann.setGeometry(QtCore.QRect(708, 265, 255, 255))
         self.plot_boltzmann.setObjectName("plot_boltzmann")
+        self.label_time = QtGui.QLabel(DemonstrationWindow)
+        self.label_time.setGeometry(QtCore.QRect(4, 490, 171, 32))
+        self.label_time.setObjectName("label_time")
 
         self.retranslateUi(DemonstrationWindow)
         QtCore.QMetaObject.connectSlotsByName(DemonstrationWindow)
@@ -356,4 +359,4 @@ class Ui_DemonstrationWindow(object):
         self.button_backward.setText(QtGui.QApplication.translate("DemonstrationWindow", "⧏", None, QtGui.QApplication.UnicodeUTF8))
         self.button_forward.setText(QtGui.QApplication.translate("DemonstrationWindow", "⧐", None, QtGui.QApplication.UnicodeUTF8))
         self.label_fps.setText(QtGui.QApplication.translate("DemonstrationWindow", "FPS", None, QtGui.QApplication.UnicodeUTF8))
-
+        self.label_time.setText(QtGui.QApplication.translate("DemonstrationWindow", "Time elapsed: {time:.5f} s", None, QtGui.QApplication.UnicodeUTF8))
