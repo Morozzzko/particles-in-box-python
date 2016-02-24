@@ -13,22 +13,40 @@ from OpenGL.GL import (glShadeModel, glClearColor, glClearDepth, glEnable,
                        GL_SMOOTH, GL_DEPTH_TEST, GL_PROJECTION, GL_LEQUAL,
                        GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST,
                        GL_MODELVIEW, GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT,
-                       GL_TRIANGLE_FAN, GL_LINE_STRIP)
+                       GL_TRIANGLE_FAN, GL_LINE_STRIP, GL_VERTEX_ARRAY,
+                       glEnableClientState, GL_DOUBLE, glVertexPointer,
+                       glDrawArrays, glColorPointer, GL_UNSIGNED_BYTE,
+                       GL_COLOR_ARRAY)
+import OpenGL.arrays.vbo as glvbo
 import datetime
 import os.path
 import struct
 import argparse
 import numpy as np
 import signal
-from math import sin, pi
+from math import sin, pi, cos, radians
 
 
 class ParticleWidget(QGLWidget):
-    SIN_45 = sin(pi / 4)
+
+    COLOR_LEFT = (255, 0, 0)
+    COLOR_RIGHT = (0, 255, 0)
 
     def __init__(self, playback, parent=None):
         super(ParticleWidget, self).__init__(parent=parent)
         self.playback = playback
+        particle_r = playback.simulator.particle_r
+
+        self.xy_offset = np.vstack((
+            np.array([(particle_r * cos(radians(x)),
+                       particle_r * sin(radians(x)))
+                      for x in range(0, 361, 45)]),
+            (0, 0)
+        ))
+
+        self.xy_size = self.xy_offset.shape[0]
+
+        self.update_particle_data()
 
         self.initializeGL()
 
@@ -43,6 +61,19 @@ class ParticleWidget(QGLWidget):
         glMatrixMode(GL_PROJECTION)
         glDepthFunc(GL_LEQUAL)
         glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
+        self.vbo = glvbo.VBO(self.particle_xy)
+        self.vbo_color = glvbo.VBO(self.particle_color)
+
+    def update_particle_data(self):
+        self.particle_xy = np.array([(p.pos_x + x, p.pos_y + y)
+                                     for p in self.playback.simulator.particles
+                                     for (x, y) in self.xy_offset])
+        self.particle_color = np.array([x
+                                        for p in self.playback.simulator.particles
+                                        for i in range(self.xy_size)
+                                        for x in (self.COLOR_RIGHT if p.id & 1
+                                                  else self.COLOR_LEFT)
+        ], dtype=np.ubyte)
 
     def resizeGL(self, width, height):
         glViewport(0, 0, width, height)
@@ -64,28 +95,25 @@ class ParticleWidget(QGLWidget):
 
         simulator = self.playback.simulator
 
-        r_sin_45 = simulator.particle_r * self.SIN_45
-        r_cos_45 = r_sin_45  # r_cos_45 is kept for readability purpose
-        particle_r = simulator.particle_r
+        self.update_particle_data()
 
-        for particle in simulator.particles:
-            if particle.id & 1:
-                glColor3ub(148, 0, 211)
-            else:
-                glColor3ub(0, 255, 0)
+        glEnableClientState(GL_COLOR_ARRAY)
 
-            glBegin(GL_TRIANGLE_FAN)
-            glVertex2d(particle.pos_x + 0, particle.pos_y + 0)
-            glVertex2d(particle.pos_x + particle_r, particle.pos_y + 0)
-            glVertex2d(particle.pos_x + r_cos_45, particle.pos_y + r_sin_45)
-            glVertex2d(particle.pos_x + 0, particle.pos_y + particle_r)
-            glVertex2d(particle.pos_x - r_cos_45, particle.pos_y + r_sin_45)
-            glVertex2d(particle.pos_x - particle_r, particle.pos_y + 0)
-            glVertex2d(particle.pos_x - r_cos_45, particle.pos_y - r_sin_45)
-            glVertex2d(particle.pos_x + 0, particle.pos_y - particle_r)
-            glVertex2d(particle.pos_x + r_cos_45, particle.pos_y - r_sin_45)
-            glVertex2d(particle.pos_x + particle_r, particle.pos_y + 0)
-            glEnd()
+        self.vbo_color.set_array(self.particle_color)
+        self.vbo_color.bind()
+        glColorPointer(3, GL_UNSIGNED_BYTE, 0, self.vbo_color)
+
+        glEnableClientState(GL_VERTEX_ARRAY)
+
+        self.vbo.set_array(self.particle_xy)
+        self.vbo.bind()
+
+        glVertexPointer(2, GL_DOUBLE, 0, self.vbo)
+
+        particle_size = self.xy_size
+
+        for i in range(len(simulator)):
+            glDrawArrays(GL_TRIANGLE_FAN, i * particle_size, particle_size)
 
         glColor3f(1, 1, 1)
         glLineWidth(2)
