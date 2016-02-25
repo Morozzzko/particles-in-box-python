@@ -100,6 +100,14 @@ class ParticleWidget(QGLWidget):
         glClearColor(0.05, 0.05, 0.05, 1.0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
+    def deleteBuffers(self):
+        self.vbo_color.unbind()
+        self.vbo_barrier.unbind()
+        self.vbo_xy.unbind()
+        del self.vbo_color
+        del self.vbo_barrier
+        del self.vbo_xy
+
     def paintGL(self):
         self.clearGL()
         glLoadIdentity()
@@ -113,6 +121,7 @@ class ParticleWidget(QGLWidget):
         self.vbo_color.set_array(self.particle_color)
         self.vbo_color.bind()
         glColorPointer(3, GL_UNSIGNED_BYTE, 0, self.vbo_color)
+        self.vbo_color.unbind()
 
         glEnableClientState(GL_VERTEX_ARRAY)
 
@@ -127,6 +136,7 @@ class ParticleWidget(QGLWidget):
             glDrawArrays(GL_TRIANGLE_FAN, i * particle_size, particle_size)
 
         glDisableClientState(GL_COLOR_ARRAY)
+        self.vbo_xy.unbind()
 
         glColor3f(1, 1, 1)
         glLineWidth(2)
@@ -134,6 +144,7 @@ class ParticleWidget(QGLWidget):
         glVertexPointer(2, GL_DOUBLE, 0, self.vbo_barrier)
         glDrawArrays(GL_LINE_STRIP, 0, 4)
         glDrawArrays(GL_LINE_STRIP, 4, 4)
+        self.vbo_barrier.unbind()
 
     def on_render_scene(self):
         self.paintGL()
@@ -180,6 +191,9 @@ class DemonstrationWindow(QtGui.QMainWindow):
         self.ui.plot_boltzmann.setLabel('left', 'Number of particles', units='')
 
         self.start_playback()
+
+    def closeEvent(self, *args, **kwargs):
+        self.ui.canvas.deleteBuffers()
 
     def stop_playback(self):
         self.stopped = True
