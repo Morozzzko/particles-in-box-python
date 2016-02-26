@@ -6,7 +6,6 @@ import unittest
 
 
 class TestNewSimulation(unittest.TestCase):
-
     def setUp(self):
         self.v_init = 3.0
         self.n_left = 100
@@ -41,7 +40,8 @@ class TestNewSimulation(unittest.TestCase):
                 num_right += 1
             else:
                 num_left += 1
-        self.assertEqual(len(self.simulator.particles), self.n_left + self.n_right)
+        self.assertEqual(len(self.simulator.particles),
+                         self.n_left + self.n_right)
         self.assertEqual(self.n_left, num_left)
         self.assertEqual(self.n_right, num_right)
 
@@ -50,12 +50,11 @@ class TestNewSimulation(unittest.TestCase):
             particles_except_current = self.simulator.particles.copy()
             particles_except_current.remove(particle_a)
             for particle_b in particles_except_current:
-                self.assertFalse(particle_a.overlaps(particle_b, self.simulator.particle_r))
+                self.assertFalse(
+                    particle_a.overlaps(particle_b, self.simulator.particle_r))
 
     def test_time_step(self):
         time_step = self.simulator.calculate_time_step()
         particle_r = self.simulator.particle_r
         for particle in self.simulator.particles:
             self.assertLessEqual(particle.speed() * time_step, particle_r)
-
-

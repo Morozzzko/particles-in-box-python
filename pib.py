@@ -28,7 +28,6 @@ from math import sin, pi, cos, radians
 
 
 class ParticleWidget(QGLWidget):
-
     COLOR_LEFT = (255, 0, 0)
     COLOR_RIGHT = (0, 255, 0)
 
@@ -80,11 +79,12 @@ class ParticleWidget(QGLWidget):
                                      for p in self.playback.simulator.particles
                                      for (x, y) in self.xy_offset])
         self.particle_color = np.array([x
-                                        for p in self.playback.simulator.particles
+                                        for p in
+                                        self.playback.simulator.particles
                                         for i in range(self.xy_size)
                                         for x in (self.COLOR_RIGHT if p.id & 1
                                                   else self.COLOR_LEFT)
-        ], dtype=np.ubyte)
+                                        ], dtype=np.ubyte)
 
     def resizeGL(self, width, height):
         glViewport(0, 0, width, height)
@@ -163,7 +163,8 @@ class DemonstrationWindow(QtGui.QMainWindow):
 
         self.label_time_original = self.ui.label_time.text()
 
-        self.ui.canvas = ParticleWidget(self.playback, parent=self.ui.frame_player)
+        self.ui.canvas = ParticleWidget(self.playback,
+                                        parent=self.ui.frame_player)
         self.ui.canvas.setFixedSize(self.ui.frame_player.size())
 
         self.ui.current_state.setMaximum(len(self.playback))
@@ -176,8 +177,10 @@ class DemonstrationWindow(QtGui.QMainWindow):
         self.timer.timeout.connect(self.on_timer_executed)
 
         self.ui.current_state.sliderPressed.connect(self.on_scrollbar_pressed)
-        self.ui.current_state.sliderReleased.connect(self.on_scrollbar_released)
-        self.ui.current_state.valueChanged.connect(self.on_scrollbar_value_changed)
+        self.ui.current_state.sliderReleased.connect(
+            self.on_scrollbar_released)
+        self.ui.current_state.valueChanged.connect(
+            self.on_scrollbar_value_changed)
 
         self.ui.button_backward.clicked.connect(self.previous_state)
         self.ui.button_forward.clicked.connect(self.next_state)
@@ -188,7 +191,8 @@ class DemonstrationWindow(QtGui.QMainWindow):
 
         self.ui.plot_boltzmann.setTitle("Boltzmann distribution")
         self.ui.plot_boltzmann.setLabel('bottom', 'height', units='m')
-        self.ui.plot_boltzmann.setLabel('left', 'Number of particles', units='')
+        self.ui.plot_boltzmann.setLabel('left', 'Number of particles',
+                                        units='')
 
         self.start_playback()
 
@@ -214,13 +218,15 @@ class DemonstrationWindow(QtGui.QMainWindow):
         self.ui.plot_boltzmann.clear()
         data_sorted = sorted((x.pos_y for x in data), reverse=True)
         y, x = np.histogram(data_sorted, bins=20)
-        self.ui.plot_boltzmann.plot(x, y, stepMode=True, fillLevel=0, brush=(126, 5, 80, 150))
+        self.ui.plot_boltzmann.plot(x, y, stepMode=True, fillLevel=0,
+                                    brush=(126, 5, 80, 150))
 
     def update_maxwell_plot(self, data):
         self.ui.plot_maxwell.clear()
         data_sorted = sorted((x.speed() for x in data), reverse=True)
         y, x = np.histogram(data_sorted, bins=20)
-        self.ui.plot_maxwell.plot(x, y, stepMode=True, fillLevel=0, brush=(126, 5, 80, 150))
+        self.ui.plot_maxwell.plot(x, y, stepMode=True, fillLevel=0,
+                                  brush=(126, 5, 80, 150))
 
     def update_plot(self, data):
         """
@@ -297,7 +303,8 @@ class NewExperimentWindow(QtGui.QMainWindow):
         self.ui.label_input_file_name.mouseReleaseEvent = self.set_input_file_path_on_click
         self.ui.label_clear_file_name.mouseReleaseEvent = self.clear_input_file_path_on_click
 
-        self.ui.output_file.setText(datetime.datetime.now().strftime("particles_in_box_%Y-%m-%d-%H-%M.bin"))
+        self.ui.output_file.setText(datetime.datetime.now().strftime(
+            "particles_in_box_%Y-%m-%d-%H-%M.bin"))
 
         # Connect slots to signals
         self.ui.button_run.clicked.connect(self.run_simulation)
@@ -310,7 +317,8 @@ class NewExperimentWindow(QtGui.QMainWindow):
         if file_path:
             self.ui.label_clear_file_name.setVisible(True)
             self.ui.label_input_file_name.setText(
-                "Opening file: {file_path}".format(file_path=os.path.basename(file_path))
+                "Opening file: {file_path}".format(
+                    file_path=os.path.basename(file_path))
             )
             self.ui.box_width.setEnabled(False)
             self.ui.box_height.setEnabled(False)
@@ -355,15 +363,16 @@ class NewExperimentWindow(QtGui.QMainWindow):
             self.ui.output_file_button.setEnabled(True)
 
     def set_input_file_path_on_click(self, ev):
-        file_path, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open:', filter="*.bin")
+        file_path, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open:',
+                                                         filter="*.bin")
         self.set_input_file(file_path or None)
 
     def clear_input_file_path_on_click(self, ev):
         self.set_input_file(None)
 
-
     def set_output_file_path(self):
-        file_path, _ = QtGui.QFileDialog.getSaveFileName(self, 'Save as:', filter="*.bin")
+        file_path, _ = QtGui.QFileDialog.getSaveFileName(self, 'Save as:',
+                                                         filter="*.bin")
         self.ui.output_file.setText(file_path)
 
     def run_simulation(self):
@@ -393,22 +402,29 @@ class NewExperimentWindow(QtGui.QMainWindow):
         file = self.ui.output_file.text()
 
         try:
-            simulator = Simulator(box_width=box_width, box_height=box_height, delta_v_top=delta_v_top,
-                                  delta_v_bottom=delta_v_bottom, delta_v_side=delta_v_side, barrier_x=barrier_x,
-                                  barrier_width=barrier_width, hole_y=hole_y, hole_height=hole_height, v_loss=v_loss,
-                                  particle_r=particle_r, n_left=n_left, n_right=n_right, v_init=v_init, g=g)
+            simulator = Simulator(box_width=box_width, box_height=box_height,
+                                  delta_v_top=delta_v_top,
+                                  delta_v_bottom=delta_v_bottom,
+                                  delta_v_side=delta_v_side,
+                                  barrier_x=barrier_x,
+                                  barrier_width=barrier_width, hole_y=hole_y,
+                                  hole_height=hole_height, v_loss=v_loss,
+                                  particle_r=particle_r, n_left=n_left,
+                                  n_right=n_right, v_init=v_init, g=g)
             num_states = simulation_time * 60 * fps
 
-            dialog = QtGui.QProgressDialog("Simulating into " + os.path.basename(file),
-                                           "Cancel",
-                                           0,
-                                           num_states)
+            dialog = QtGui.QProgressDialog(
+                "Simulating into " + os.path.basename(file),
+                "Cancel",
+                0,
+                num_states)
             dialog.show()
             dialog.setValue(0)
-            for state_num, _ in enumerate(simulator.simulate_to_file(file_path=file,
-                                                                     num_seconds=simulation_time * 60,
-                                                                     num_snapshots=fps,
-                                                                     write_head=True)):
+            for state_num, _ in enumerate(
+                    simulator.simulate_to_file(file_path=file,
+                                               num_seconds=simulation_time * 60,
+                                               num_snapshots=fps,
+                                               write_head=True)):
                 dialog.setValue(state_num)
 
         except IOError as e:
@@ -425,7 +441,8 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, sigint_handler)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("input", nargs="?", type=argparse.FileType(mode="rb"), default=None)
+    parser.add_argument("input", nargs="?", type=argparse.FileType(mode="rb"),
+                        default=None)
     args = parser.parse_args()
 
     app = QtGui.QApplication(argv)
