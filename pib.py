@@ -24,7 +24,45 @@ import struct
 import argparse
 import numpy as np
 import signal
-from math import sin, pi, cos, radians
+import subprocess
+import threading
+import collections
+from math import sin, cos, radians, pi
+
+BASE_PATH = os.path.dirname(os.path.realpath(__file__))
+EXEC_CMD = os.path.join(BASE_PATH, "pib-generate")
+
+
+def read_from_pipe(process, append_func):
+    for line in iter(process.stdout.readline, ""):
+        append_func(line)
+
+
+def simulate(box_width: float, box_height: float,
+             delta_v_top: float, delta_v_bottom: float,
+             delta_v_side: float,
+             barrier_x: float, barrier_width: float, hole_y: float,
+             hole_height: float,
+             min_to_simulate: int,
+             output_file: str,
+             v_loss: float, particle_r: float,
+             deque: collections.deque,
+             n_left: int = 500, n_right: int = 500,
+             v_init: float = 0.0,
+             g: float = 9.8,
+             fps: int = 30,
+             ):
+    params = [str(x) for x in (n_left, n_right, particle_r, v_init, v_loss,
+                               box_width, box_height, barrier_x, barrier_width,
+                               hole_y, hole_height, delta_v_top,
+                               delta_v_bottom, delta_v_side, g,
+                               min_to_simulate, fps, output_file)]
+    process = subprocess.Popen([EXEC_CMD] + params, stdout=subprocess.PIPE,
+                               bufsize=1, universal_newlines=True)
+    t = threading.Thread(target=read_from_pipe, args=(process, deque.append))
+    t.daemon = True
+    t.start()
+    return process
 
 
 class ParticleWidget(QGLWidget):
@@ -176,7 +214,8 @@ class DemonstrationWindow(QtGui.QMainWindow):
         self.timer = QtCore.QTimer(parent=self)
         self.timer.timeout.connect(self.on_timer_executed)
 
-        self.ui.current_state.sliderPressed.connect(self.on_scrollbar_pressed)
+        self.ui.current_state.sliderPressed.connect(
+            self.on_scrollbar_pressed)
         self.ui.current_state.sliderReleased.connect(
             self.on_scrollbar_released)
         self.ui.current_state.valueChanged.connect(
@@ -187,7 +226,8 @@ class DemonstrationWindow(QtGui.QMainWindow):
 
         self.ui.plot_maxwell.setTitle("Maxwell distribution")
         self.ui.plot_maxwell.setLabel('bottom', 'Speed', units='m/s')
-        self.ui.plot_maxwell.setLabel('left', 'Number of particles', units='')
+        self.ui.plot_maxwell.setLabel('left', 'Number of particles',
+                                      units='')
 
         self.ui.plot_boltzmann.setTitle("Boltzmann distribution")
         self.ui.plot_boltzmann.setLabel('bottom', 'height', units='m')
@@ -245,13 +285,15 @@ class DemonstrationWindow(QtGui.QMainWindow):
 
     def previous_state(self):
         try:
-            self.ui.current_state.setValue(self.ui.current_state.value() - 1)
+            self.ui.current_state.setValue(
+                self.ui.current_state.value() - 1)
         except (IOError, struct.error, ValueError) as err:
             self.stop_playback()
 
     def next_state(self):
         try:
-            self.ui.current_state.setValue(self.ui.current_state.value() + 1)
+            self.ui.current_state.setValue(
+                self.ui.current_state.value() + 1)
         except (IOError, struct.error, ValueError) as err:
             self.stop_playback()
 
@@ -310,7 +352,8 @@ class NewExperimentWindow(QtGui.QMainWindow):
         self.ui.button_run.clicked.connect(self.run_simulation)
 
         # File selection dialog
-        self.ui.output_file_button.clicked.connect(self.set_output_file_path)
+        self.ui.output_file_button.clicked.connect(
+            self.set_output_file_path)
 
     def set_input_file(self, file_path):
         self.input_file = file_path
@@ -398,39 +441,58 @@ class NewExperimentWindow(QtGui.QMainWindow):
         n_right = self.ui.n_right.value()
         v_init = self.ui.v_init.value()
         fps = self.ui.fps.value()
-        simulation_time = self.ui.simulation_time.value()
-        file = self.ui.output_file.text()
+        min_to_simulate = self.ui.simulation_time.value()
+        output_file = self.ui.output_file.text()
 
         try:
-            simulator = Simulator(box_width=box_width, box_height=box_height,
-                                  delta_v_top=delta_v_top,
-                                  delta_v_bottom=delta_v_bottom,
-                                  delta_v_side=delta_v_side,
-                                  barrier_x=barrier_x,
-                                  barrier_width=barrier_width, hole_y=hole_y,
-                                  hole_height=hole_height, v_loss=v_loss,
-                                  particle_r=particle_r, n_left=n_left,
-                                  n_right=n_right, v_init=v_init, g=g)
-            num_states = simulation_time * 60 * fps
-
-            dialog = QtGui.QProgressDialog(
-                "Simulating into " + os.path.basename(file),
+            self.dialog = QtGui.QProgressDialog(
+                "Simulating into " + os.path.basename(output_file),
                 "Cancel",
                 0,
-                num_states)
-            dialog.show()
-            dialog.setValue(0)
-            for state_num, _ in enumerate(
-                    simulator.simulate_to_file(file_path=file,
-                                               num_seconds=simulation_time * 60,
-                                               num_snapshots=fps,
-                                               write_head=True)):
-                dialog.setValue(state_num)
+                min_to_simulate * 60)
+            self.dialog.show()
+            self.dialog.setValue(0)
+            self.progress = collections.deque(maxlen=1)
+
+            self.simulator = simulate(n_left=n_left,
+                                      n_right=n_right,
+                                      particle_r=particle_r,
+                                      v_init=v_init,
+                                      v_loss=v_loss,
+                                      box_width=box_width,
+                                      box_height=box_height,
+                                      barrier_x=barrier_x,
+                                      barrier_width=barrier_width,
+                                      hole_y=hole_y,
+                                      hole_height=hole_height,
+                                      delta_v_top=delta_v_top,
+                                      delta_v_bottom=delta_v_bottom,
+                                      delta_v_side=delta_v_side,
+                                      g=g,
+                                      min_to_simulate=min_to_simulate,
+                                      fps=fps,
+                                      output_file=output_file,
+                                      deque=self.progress)
+            self.hide()
+
+            self.timer = QtCore.QTimer(parent=self)
+            self.timer.start(100)
+            self.timer.timeout.connect(self.update_progress)
 
         except IOError as e:
             QtGui.QMessageBox.critical(self, "Error!", str(e))
-        except Exception as e:
-            QtGui.QMessageBox.critical(self, "Error!", str(e))
+
+    def update_progress(self):
+        try:
+            result = self.progress.pop()
+            self.dialog.setValue(int(result))
+        except IndexError:  # if empty or finished
+            if self.simulator.poll() is not None:
+                self.timer.stop()
+                window = DemonstrationWindow(self.ui.output_file.text(),
+                                             parent=self)
+                window.show()
+                # otherwise, do nothing
 
 
 def sigint_handler(*args):
@@ -441,7 +503,8 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, sigint_handler)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("input", nargs="?", type=argparse.FileType(mode="rb"),
+    parser.add_argument("input", nargs="?",
+                        type=argparse.FileType(mode="rb"),
                         default=None)
     args = parser.parse_args()
 
