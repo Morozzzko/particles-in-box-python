@@ -114,14 +114,16 @@ class ParticleWidget(QGLWidget):
 
     def update_particle_data(self):
         self.particle_xy = np.array([(p.pos_x + x, p.pos_y + y)
-                                     for p in self.playback.simulator.particles
+                                     for p in
+                                     self.playback.simulator.particles
                                      for (x, y) in self.xy_offset])
         self.particle_color = np.array([x
                                         for p in
                                         self.playback.simulator.particles
                                         for i in range(self.xy_size)
-                                        for x in (self.COLOR_RIGHT if p.id & 1
-                                                  else self.COLOR_LEFT)
+                                        for x in
+                                        (self.COLOR_RIGHT if p.id & 1
+                                         else self.COLOR_LEFT)
                                         ], dtype=np.ubyte)
 
     def resizeGL(self, width, height):
@@ -257,16 +259,27 @@ class DemonstrationWindow(QtGui.QMainWindow):
     def update_boltzmann_plot(self, data):
         self.ui.plot_boltzmann.clear()
         data_sorted = sorted((x.pos_y for x in data), reverse=True)
-        y, x = np.histogram(data_sorted, bins=20)
+        y, x = np.histogram(data_sorted, bins=20, density=True)
         self.ui.plot_boltzmann.plot(x, y, stepMode=True, fillLevel=0,
                                     brush=(126, 5, 80, 150))
 
     def update_maxwell_plot(self, data):
         self.ui.plot_maxwell.clear()
         data_sorted = sorted((x.speed() for x in data), reverse=True)
-        y, x = np.histogram(data_sorted, bins=20)
+        y, x = np.histogram(data_sorted, bins=20, density=True)
         self.ui.plot_maxwell.plot(x, y, stepMode=True, fillLevel=0,
                                   brush=(126, 5, 80, 150))
+
+        v_probable = x[np.argmax(y) + 1]
+
+        k = 4 / np.sqrt(pi) * ((1 / v_probable) ** 3)
+
+        y_theoretical = np.array(
+            [k * (val * val) * np.exp(-(val * val) / (v_probable * v_probable))
+             for val in x])
+
+        self.ui.plot_maxwell.plot(x, y_theoretical, stepMode=False,
+                                  brush=(255, 255, 255, 255))
 
     def update_plot(self, data):
         """
