@@ -151,4 +151,8 @@ local.properties
 # TeXlipse plugin
 .texlipse
 
+# Particles in Box generated files
+
+particles_in_box*
+
 

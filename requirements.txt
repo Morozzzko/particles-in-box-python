@@ -1,0 +1,4 @@
+numpy
+pyside
+pyqtgraph
+PyOpenGL
