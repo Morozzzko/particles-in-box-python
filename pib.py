@@ -270,7 +270,8 @@ class DemonstrationWindow(QtGui.QMainWindow):
         self.ui.plot_maxwell.plot(x, y, stepMode=True, fillLevel=0,
                                   brush=(126, 5, 80, 150))
 
-        v_probable = x[np.argmax(y) + 1]
+        v_probable = x[np.argmax(y)]
+        offset = np.max(np.diff(x)) / 2
 
         k = 4 / np.sqrt(pi) * ((1 / v_probable) ** 3)
 
@@ -278,7 +279,8 @@ class DemonstrationWindow(QtGui.QMainWindow):
             [k * (val * val) * np.exp(-(val * val) / (v_probable * v_probable))
              for val in x])
 
-        self.ui.plot_maxwell.plot(x, y_theoretical, stepMode=False,
+        self.ui.plot_maxwell.plot(np.add(x, offset), y_theoretical,
+                                  stepMode=False,
                                   brush=(255, 255, 255, 255))
 
     def update_plot(self, data):
