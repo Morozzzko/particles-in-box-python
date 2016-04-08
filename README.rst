@@ -1,7 +1,7 @@
 Particles In Box
 ================
-.. image:: https://travis-ci.org/Morozzzko/particles-in-box.svg?branch=master
-    :target: https://travis-ci.org/Morozzzko/particles-in-box
+.. image:: https://travis-ci.org/Morozzzko/particles-in-box-python.svg?branch=master
+    :target: https://travis-ci.org/Morozzzko/particles-in-box-python
 
 Программа, созданная для визуализации и исследования распределения Максвелла.
 
